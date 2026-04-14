@@ -8,9 +8,17 @@
     transition: color var(--transition-speed);
 }
 
-.engine-display svg {
-    color: var(--logo-color);
-    transition: color var(--transition-speed);
+.engine-icon {
+    width: 48px;
+    height: 48px;
+    background-color: var(--logo-color);
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    transition: background-color var(--transition-speed);
 }
 
 .engine-display h1 {
