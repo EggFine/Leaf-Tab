@@ -4,16 +4,19 @@ const engines = {
   bing: {
     url: "https://www.bing.com/search?q=",
     name: "必应，有求必应",
+    name_en: "Bing",
     icon: "assets/bing.svg",
   },
   google: {
     url: "https://www.google.com/search?q=",
     name: "Google 谷歌",
+    name_en: "Google",
     icon: "assets/google.svg",
   },
   baidu: {
     url: "https://www.baidu.com/s?wd=",
     name: "百度一下，你就知道",
+    name_en: "Baidu",
     icon: "assets/baidu.svg",
   },
 };
@@ -25,7 +28,7 @@ export function updateSearchPlaceholder() {
   const engineInfo = engines[currentSettings.engine] || engines["bing"];
 
   if (searchInput) {
-    searchInput.placeholder = `在 ${engineInfo.name} 上搜索...`;
+    searchInput.placeholder = `在 ${engineInfo.name_en} 上搜索...`;
   }
 
   if (engineDisplay) {
