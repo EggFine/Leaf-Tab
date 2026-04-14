@@ -1,7 +1,7 @@
 import { loadSettings, saveSettings, currentSettings } from './store.js';
 import { applyTheme, initTheme } from './theme.js';
 import { setupCustomSelect, initSettingsOverlay } from './settings.js';
-import { initSearch } from './search.js';
+import { initSearch, updateSearchPlaceholder } from './search.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // ==================== 初始化与加载 ====================
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const engineSelectControl = setupCustomSelect('engineSelect', (value) => {
         currentSettings.engine = value;
         saveSettings();
+        updateSearchPlaceholder(); // 切换引擎时实时更新占位符提示
     });
 
     // 同步 UI 状态
