@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "leaf-tab",
+  "version": "1.0.0",
+  "description": "A basic Edge extension skeleton.",
+  "author": "EggFine",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "leaf-tab"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "tabs"
+  ]
+}
