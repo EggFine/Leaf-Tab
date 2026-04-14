@@ -49,6 +49,33 @@ export function initSettingsOverlay() {
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
     const searchInput = document.getElementById('searchInput');
 
+    // 选项卡切换逻辑
+    const menuItems = document.querySelectorAll('.menu-item');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    const currentTabTitle = document.getElementById('currentTabTitle');
+
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // 更新菜单高亮
+            menuItems.forEach(btn => btn.classList.remove('active'));
+            item.classList.add('active');
+
+            // 更新标题
+            if (currentTabTitle) {
+                currentTabTitle.textContent = item.textContent.trim();
+            }
+
+            // 切换内容区
+            const targetTabId = item.getAttribute('data-tab');
+            tabPanes.forEach(pane => {
+                pane.classList.remove('active');
+                if (pane.id === `tab-${targetTabId}`) {
+                    pane.classList.add('active');
+                }
+            });
+        });
+    });
+
     function openSettings() {
         settingsOverlay.classList.add('active');
     }
