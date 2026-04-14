@@ -1,0 +1,44 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #202124;
+    --logo-color: #1a73e8;
+    
+    --search-bg: #ffffff;
+    --search-border: #dfe1e5;
+    --search-border-hover: #dfe1e5;
+    --search-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+    
+    --icon-color: #5f6368;
+    --btn-bg-hover: #f1f3f4;
+    
+    --modal-bg: #ffffff;
+    --modal-border: #e0e0e0;
+    --modal-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --select-bg: #f1f3f4;
+    --select-border: transparent;
+    --overlay-bg: rgba(0, 0, 0, 0.2);
+    
+    --transition-speed: 0.5s;
+    --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.dark-theme {
+    --bg-color: #202124;
+    --text-color: #e8eaed;
+    --logo-color: #8ab4f8;
+    
+    --search-bg: #303134;
+    --search-border: #5f6368;
+    --search-border-hover: #5f6368;
+    --search-shadow: 0 1px 6px rgba(23, 23, 23, 0.28);
+    
+    --icon-color: #9aa0a6;
+    --btn-bg-hover: #3c4043;
+    
+    --modal-bg: #292a2d;
+    --modal-border: #3c4043;
+    --modal-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --select-bg: #202124;
+    --select-border: #5f6368;
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+}

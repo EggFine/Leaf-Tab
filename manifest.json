@@ -5,14 +5,14 @@
   "description": "A basic Edge extension skeleton.",
   "author": "EggFine",
   "chrome_url_overrides": {
-    "newtab": "newtab.html"
+    "newtab": "src/newtab/index.html"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/index.html",
     "default_title": "leaf-tab"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background/background.js"
   },
   "permissions": [
     "storage",
