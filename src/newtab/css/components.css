@@ -1,22 +1,52 @@
-/* Logo */
-.logo {
+/* Engine Display */
+.engine-display {
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 16px;
     margin-bottom: 36px;
-}
-
-.logo-svg {
-    color: var(--logo-color);
-    margin-bottom: 12px;
     transition: color var(--transition-speed);
 }
 
-.logo h1 {
+.engine-display svg {
+    color: var(--logo-color);
+    transition: color var(--transition-speed);
+}
+
+.engine-display h1 {
     font-size: 2.2rem;
     font-weight: 400;
     margin: 0;
     letter-spacing: -0.5px;
+    color: var(--text-color);
+}
+
+/* Brand Corner */
+.brand-corner {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.3;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: var(--icon-color);
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), color var(--transition-speed);
+    z-index: 5;
+    pointer-events: none;
+}
+
+.brand-corner:hover {
+    opacity: 0.8;
+}
+
+.brand-svg {
+    color: var(--icon-color);
+    transition: color var(--transition-speed);
 }
 
 /* 控制按钮 */
