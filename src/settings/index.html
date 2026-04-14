@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>设置 - Leaf Tab</title>
+    <link rel="stylesheet" href="../newtab/css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="settings-page">
+        <!-- 左侧边栏 -->
+        <div class="settings-sidebar">
+            <div class="settings-sidebar-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-svg"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+                <h2>设置</h2>
+            </div>
+            <nav class="settings-menu">
+                <button class="menu-item active" data-tab="general">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    常规设置
+                </button>
+                <button class="menu-item" data-tab="appearance">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    外观
+                </button>
+                <button class="menu-item" data-tab="search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    搜索引擎
+                </button>
+                <button class="menu-item" data-tab="about">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    关于
+                </button>
+            </nav>
+        </div>
+        
+        <!-- 右侧内容区 -->
+        <div class="settings-content-area">
+            <div class="settings-content-header">
+                <h3 id="currentTabTitle">常规设置</h3>
+            </div>
+            
+            <div class="settings-scroll-area">
+                <!-- 常规设置 -->
+                <div class="tab-pane active" id="tab-general">
+                    <div class="setting-group">
+                        <p class="setting-desc">在这里配置你的基础偏好。更多设置即将到来...</p>
+                    </div>
+                </div>
+                
+                <!-- 外观 -->
+                <div class="tab-pane" id="tab-appearance">
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label>主题外观</label>
+                            <div class="custom-select-wrapper" id="themeSelect">
+                                <div class="custom-select" tabindex="0">
+                                    <span class="selected-value">跟随系统</span>
+                                    <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </div>
+                                <div class="custom-options">
+                                    <div class="custom-option" data-value="system">跟随系统</div>
+                                    <div class="custom-option" data-value="light">浅色模式</div>
+                                    <div class="custom-option" data-value="dark">深色模式</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 搜索引擎 -->
+                <div class="tab-pane" id="tab-search">
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label>默认搜索引擎</label>
+                            <div class="custom-select-wrapper" id="engineSelect">
+                                <div class="custom-select" tabindex="0">
+                                    <span class="selected-value">Bing</span>
+                                    <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </div>
+                                <div class="custom-options">
+                                    <div class="custom-option" data-value="bing">Bing</div>
+                                    <div class="custom-option" data-value="google">Google</div>
+                                    <div class="custom-option" data-value="baidu">Baidu</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 关于 -->
+                <div class="tab-pane" id="tab-about">
+                    <div class="setting-group about-section">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="about-logo"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+                        <h2>Leaf Tab</h2>
+                        <p class="setting-desc">一个极简、优雅的浏览器起始页扩展。</p>
+                        <p class="version-text">v1.0.0</p>
+                        <p class="author-text">Designed by EggFine</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

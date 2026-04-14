@@ -17,8 +17,9 @@ export function applyTheme() {
     }
 }
 
-export function initTheme(themeSelectControl) {
+export function initTheme() {
     const themeToggle = document.getElementById('themeToggle');
+    if (!themeToggle) return;
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (currentSettings.theme === 'system') {
@@ -31,8 +32,6 @@ export function initTheme(themeSelectControl) {
         const newTheme = isCurrentlyDark ? 'light' : 'dark';
         
         currentSettings.theme = newTheme;
-        themeSelectControl.setValue(newTheme);
-        
         saveSettings();
         applyTheme();
     });

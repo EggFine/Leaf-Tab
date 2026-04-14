@@ -1,34 +1,26 @@
-import { loadSettings, saveSettings, currentSettings } from './store.js';
+import { loadSettings, currentSettings } from './store.js';
 import { applyTheme, initTheme } from './theme.js';
-import { setupCustomSelect, initSettingsOverlay } from './settings.js';
+import { initSettingsButton } from './settings.js';
 import { initSearch, updateSearchPlaceholder } from './search.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // ==================== 初始化与加载 ====================
     loadSettings();
-
-    // ==================== 初始化下拉框 ====================
-    const themeSelectControl = setupCustomSelect('themeSelect', (value) => {
-        currentSettings.theme = value;
-        saveSettings();
-        applyTheme();
-    });
-
-    const engineSelectControl = setupCustomSelect('engineSelect', (value) => {
-        currentSettings.engine = value;
-        saveSettings();
-        updateSearchPlaceholder(); // 切换引擎时实时更新占位符提示
-    });
-
-    // 同步 UI 状态
-    themeSelectControl.setValue(currentSettings.theme);
-    engineSelectControl.setValue(currentSettings.engine);
+    applyTheme();
 
     // ==================== 绑定其他模块逻辑 ====================
-    applyTheme();
-    initTheme(themeSelectControl);
-    initSettingsOverlay();
+    initTheme();
+    initSettingsButton();
     initSearch();
+    
+    // 监听设置页面修改导致的数据变动
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'leaf-settings') {
+            loadSettings();
+            applyTheme();
+            updateSearchPlaceholder();
+        }
+    });
     
     // ==================== 触发入场动画 ====================
     setTimeout(() => {
