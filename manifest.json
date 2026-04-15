@@ -11,11 +11,16 @@
     "default_popup": "src/popup/index.html",
     "default_title": "leaf-tab"
   },
+  "options_ui": {
+    "page": "src/settings/index.html",
+    "open_in_tab": true
+  },
   "background": {
     "service_worker": "src/background/background.js"
   },
   "permissions": [
     "storage",
+    "activeTab",
     "tabs"
   ]
 }

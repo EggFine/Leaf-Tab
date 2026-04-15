@@ -1,0 +1,43 @@
+<div class="layout-tab">
+    <div class="setting-group layout-intro">
+        <p class="setting-desc">
+            将模块拖入九宫格中的任意格子；拖出格子则隐藏。需要在一个格子内放多个模块？
+            点下方"+ 行组件 / + 列组件"新建一个<strong>容器</strong>，拖到任意格子后即可把其他 widget 拖进容器内并排/堆叠。
+        </p>
+        <div class="layout-toolbar">
+            <button type="button" class="layout-btn" data-role="add-row-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="5" height="8" rx="1"></rect><rect x="10" y="8" width="5" height="8" rx="1"></rect><rect x="17" y="8" width="4" height="8" rx="1"></rect></svg>
+                + 行组件
+            </button>
+            <button type="button" class="layout-btn" data-role="add-col-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="5" rx="1"></rect><rect x="8" y="10" width="8" height="5" rx="1"></rect><rect x="8" y="17" width="8" height="4" rx="1"></rect></svg>
+                + 列组件
+            </button>
+            <button type="button" class="layout-btn layout-btn-secondary" data-role="reset">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                恢复默认
+            </button>
+        </div>
+    </div>
+
+    <div class="layout-editor">
+        <!-- 左：九宫格画布 -->
+        <div class="layout-canvas">
+            <div class="layout-grid" data-role="grid">
+                <!-- 九格由 JS 生成 -->
+            </div>
+            <div class="layout-float-row">
+                <div class="layout-cell layout-cell-float" data-cell="BC-float" data-drop-target="float">
+                    <span class="layout-cell-label">底部浮层 · BC-float</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右：未放置 widget 的储物架 -->
+        <aside class="layout-tray">
+            <h4 class="layout-tray-title">已隐藏</h4>
+            <p class="layout-tray-hint">拖入格子或容器即可显示</p>
+            <div class="layout-tray-list" data-role="tray" data-drop-target="tray"></div>
+        </aside>
+    </div>
+</div>

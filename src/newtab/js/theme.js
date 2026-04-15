@@ -1,14 +1,10 @@
-import { currentSettings, saveSettings } from './store.js';
+import { currentSettings } from './store.js';
+
+const colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
 export function applyTheme() {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    let shouldUseDark = false;
-
-    if (currentSettings.theme === 'dark') {
-        shouldUseDark = true;
-    } else if (currentSettings.theme === 'system' && prefersDark) {
-        shouldUseDark = true;
-    }
+    const shouldUseDark = currentSettings.theme === 'dark' ||
+        (currentSettings.theme === 'system' && colorSchemeQuery.matches);
 
     if (shouldUseDark) {
         document.body.classList.add('dark-theme');
@@ -17,22 +13,9 @@ export function applyTheme() {
     }
 }
 
-export function initTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    if (!themeToggle) return;
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (currentSettings.theme === 'system') {
-            applyTheme();
-        }
-    });
-
-    themeToggle.addEventListener('click', () => {
-        const isCurrentlyDark = document.body.classList.contains('dark-theme');
-        const newTheme = isCurrentlyDark ? 'light' : 'dark';
-        
-        currentSettings.theme = newTheme;
-        saveSettings();
+// 系统主题变化 → 在 theme === 'system' 时跟随重算
+colorSchemeQuery.addEventListener('change', () => {
+    if (currentSettings.theme === 'system') {
         applyTheme();
-    });
-}
+    }
+});

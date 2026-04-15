@@ -1,30 +1,78 @@
-import { loadSettings, currentSettings } from './store.js';
-import { applyTheme, initTheme } from './theme.js';
-import { initSettingsButton } from './settings.js';
-import { initSearch, updateSearchPlaceholder } from './search.js';
+import { loadSettings, onSettingsChanged, currentSettings } from './store.js';
+import { applyTheme } from './theme.js';
+import { registerWidget } from './widgetRegistry.js';
+import { initLayout, relayout, notifyWidgetsSettingsChanged } from './layout.js';
+
+// Core widgets
+import searchManifest from './widgets/core/search.js';
+import themeToggleManifest from './widgets/core/themeToggle.js';
+import settingsBtnManifest from './widgets/core/settingsBtn.js';
+import brandManifest from './widgets/core/brand.js';
+
+// Container 模板（供容器实例共享）
+import rowContainerManifest from './widgets/core/containers/row.js';
+import colContainerManifest from './widgets/core/containers/col.js';
+
+// Plugin widgets
+import bookmarksManifest from './widgets/plugins/bookmarks/index.js';
+
+// 注册（顺序无关）
+[
+    searchManifest,
+    themeToggleManifest,
+    settingsBtnManifest,
+    brandManifest,
+    rowContainerManifest,
+    colContainerManifest,
+    bookmarksManifest
+].forEach(registerWidget);
 
 document.addEventListener('DOMContentLoaded', () => {
-    // ==================== 初始化与加载 ====================
-    loadSettings();
+    void initializeNewTab();
+});
+
+async function initializeNewTab() {
+    await loadSettings();
     applyTheme();
 
-    // ==================== 绑定其他模块逻辑 ====================
-    initTheme();
-    initSettingsButton();
-    initSearch();
-    
-    // 监听设置页面修改导致的数据变动
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'leaf-settings') {
-            loadSettings();
+    initLayout();
+
+    let lastWidgetsSnapshot = JSON.stringify(currentSettings.widgets || {});
+    let lastGridSnapshot = JSON.stringify(currentSettings.grid || {});
+    let lastTheme = currentSettings.theme;
+    let lastEngine = currentSettings.engine;
+    let lastInstalled = JSON.stringify(currentSettings.installedPlugins || []);
+
+    onSettingsChanged(() => {
+        const themeChanged = currentSettings.theme !== lastTheme;
+        if (themeChanged) {
+            lastTheme = currentSettings.theme;
             applyTheme();
-            updateSearchPlaceholder();
+        }
+
+        const widgetsJson = JSON.stringify(currentSettings.widgets || {});
+        const gridJson = JSON.stringify(currentSettings.grid || {});
+        const installedJson = JSON.stringify(currentSettings.installedPlugins || []);
+        const structuralChanged =
+            widgetsJson !== lastWidgetsSnapshot ||
+            gridJson !== lastGridSnapshot ||
+            installedJson !== lastInstalled;
+        const engineChanged = currentSettings.engine !== lastEngine;
+
+        if (structuralChanged) {
+            // 结构/网格/安装变化 → 完整 relayout
+            relayout();
+            lastWidgetsSnapshot = widgetsJson;
+            lastGridSnapshot = gridJson;
+            lastInstalled = installedJson;
+        } else if (engineChanged || themeChanged) {
+            lastEngine = currentSettings.engine;
+            notifyWidgetsSettingsChanged();
         }
     });
-    
-    // ==================== 触发入场动画 ====================
+
+    // 入场动画
     setTimeout(() => {
         document.body.classList.add('loaded');
-        document.getElementById('searchInput').focus();
     }, 50);
-});
+}

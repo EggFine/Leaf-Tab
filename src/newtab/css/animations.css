@@ -18,8 +18,8 @@ body.loaded .brand-corner { animation: entry-fade-up 1.4s cubic-bezier(0.16, 1, 
 }
 
 @keyframes entry-fade-up {
-    0% { opacity: 0; transform: translate(-50%, 20px); }
-    100% { opacity: 0.3; transform: translate(-50%, 0); }
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 0.3; transform: translateY(0); }
 }
 
 /* 主题图标切换 */

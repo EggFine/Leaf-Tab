@@ -1,0 +1,691 @@
+/* ============================================================
+ * 插件商城 tab 样式
+ * ============================================================ */
+
+.plugins-tab .plugin-section {
+    margin-top: 32px;
+}
+
+.plugin-section-title {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--icon-color);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.plugin-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.plugin-empty-hint {
+    color: var(--icon-color);
+    opacity: 0.7;
+    font-size: 0.9rem;
+    margin: 4px 0 0 4px;
+}
+
+.plugin-card {
+    border: 1px solid var(--modal-border);
+    border-radius: 14px;
+    background: transparent;
+    overflow: hidden;
+    transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plugin-card:hover {
+    border-color: var(--logo-color);
+}
+
+.plugin-card-main {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+}
+
+.plugin-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--btn-bg-hover);
+    color: var(--logo-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.plugin-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.plugin-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.plugin-name {
+    font-size: 1.02rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--text-color);
+}
+
+.plugin-desc {
+    font-size: 0.88rem;
+    color: var(--icon-color);
+    line-height: 1.45;
+    margin-bottom: 6px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.plugin-sub {
+    font-size: 0.78rem;
+    color: var(--icon-color);
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.plugin-dot { opacity: 0.6; }
+
+.plugin-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.plugin-install-btn {
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid var(--modal-border);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.plugin-install-btn:hover {
+    border-color: var(--logo-color);
+    color: var(--logo-color);
+}
+
+.plugin-install-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.plugin-card-body {
+    border-top: 1px solid var(--modal-border);
+    background: rgba(0,0,0,0.015);
+}
+
+body.dark-theme .plugin-card-body {
+    background: rgba(255,255,255,0.02);
+}
+
+.plugin-expand-btn {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--icon-color);
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.plugin-expand-btn:hover {
+    color: var(--text-color);
+}
+
+.plugin-chevron {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plugin-card.expanded .plugin-chevron {
+    transform: rotate(180deg);
+}
+
+.plugin-config-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0 20px;
+}
+
+.plugin-card.expanded .plugin-config-panel {
+    padding-bottom: 16px;
+}
+
+.plugin-config-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--modal-border);
+}
+
+.plugin-config-row:first-child {
+    border-top: none;
+}
+
+.plugin-config-label label {
+    font-size: 0.96rem;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.plugin-config-desc {
+    font-size: 0.82rem;
+    color: var(--icon-color);
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+/* ============================================================
+ * 布局 DIY tab 样式
+ * ============================================================ */
+
+.layout-tab .layout-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.layout-toolbar {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* 行/列 尺寸控件 */
+.layout-sizer {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    border: 1px solid var(--modal-border);
+    border-radius: 10px;
+    background: transparent;
+}
+
+.layout-sizer-label {
+    font-size: 0.85rem;
+    color: var(--icon-color);
+    margin-right: 4px;
+    padding: 0 4px;
+}
+
+.layout-sizer-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--btn-bg-hover);
+    border-radius: 6px;
+    color: var(--text-color);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.layout-sizer-btn:hover:not(:disabled) {
+    background: var(--logo-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+.layout-sizer-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.layout-sizer-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.layout-sizer-value {
+    min-width: 22px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.layout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--btn-bg-hover);
+    border: 1px solid var(--modal-border);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.layout-btn:hover {
+    border-color: var(--logo-color);
+    color: var(--logo-color);
+}
+
+.layout-btn-secondary {
+    background: transparent;
+}
+
+.layout-editor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.layout-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.layout-grid {
+    display: grid;
+    /* grid-template-rows/columns 由 JS 动态写入 */
+    aspect-ratio: 16 / 10;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px dashed var(--modal-border);
+    background: rgba(0,0,0,0.015);
+}
+
+body.dark-theme .layout-grid {
+    background: rgba(255,255,255,0.02);
+}
+
+.layout-cell {
+    position: relative;
+    border-radius: 10px;
+    border: 1px dashed var(--modal-border);
+    background: transparent;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 8px;
+    gap: 6px;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    overflow: hidden;
+}
+
+.layout-cell.occupied {
+    border-style: solid;
+    border-color: var(--modal-border);
+}
+
+.layout-cell.drag-over {
+    border-color: var(--logo-color);
+    background: rgba(26, 115, 232, 0.08);
+}
+
+.layout-cell-label {
+    position: absolute;
+    top: 4px;
+    left: 8px;
+    font-size: 0.7rem;
+    color: var(--icon-color);
+    opacity: 0.45;
+    pointer-events: none;
+    letter-spacing: 0.5px;
+}
+
+.layout-float-row {
+    display: flex;
+}
+
+.layout-cell-float {
+    flex: 1;
+    min-height: 56px;
+    border-radius: 10px;
+    border: 1px dashed var(--modal-border);
+    padding: 8px 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.layout-cell-float .layout-cell-label {
+    top: 6px;
+    left: 10px;
+}
+
+/* Chip */
+.layout-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-color);
+    border: 1px solid var(--modal-border);
+    border-radius: 8px;
+    cursor: grab;
+    user-select: none;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 14px; /* 给 cell-label 预留空间 */
+}
+
+.layout-cell .layout-chip:not(:first-of-type) {
+    margin-top: 6px;
+}
+
+.layout-chip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.layout-chip:hover {
+    border-color: var(--logo-color);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.layout-chip:active,
+.layout-chip.dragging {
+    cursor: grabbing;
+    opacity: 0.55;
+    transform: scale(0.98);
+}
+
+/* 非 hideable widget 的视觉提示：拖到 tray 时抖动 */
+.layout-chip.non-hideable .layout-chip-type {
+    color: var(--logo-color);
+    opacity: 0.85;
+}
+
+.layout-chip.shake {
+    animation: chip-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes chip-shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(3px); }
+    30%, 50%, 70% { transform: translateX(-5px); }
+    40%, 60% { transform: translateX(5px); }
+}
+
+.layout-chip.pending {
+    border-color: var(--logo-color);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+
+[data-drop-target].pending-target {
+    border-style: solid;
+    border-color: rgba(26, 115, 232, 0.4);
+}
+
+.layout-chip-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--logo-color);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.layout-chip-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.layout-chip-meta {
+    min-width: 0;
+    flex: 1;
+}
+
+/* 容器 chip —— 占据整个 cell 宽度，内部有 children drop zone */
+.layout-chip.is-container {
+    width: 100%;
+    background: rgba(26, 115, 232, 0.03);
+    border: 1px dashed var(--logo-color);
+}
+
+body.dark-theme .layout-chip.is-container {
+    background: rgba(138, 180, 248, 0.05);
+}
+
+.layout-chip.is-container .layout-chip-type {
+    color: var(--logo-color);
+    opacity: 0.85;
+}
+
+.layout-chip-children {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 36px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px dashed var(--modal-border);
+    background: rgba(0,0,0,0.015);
+    align-items: center;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+body.dark-theme .layout-chip-children {
+    background: rgba(255,255,255,0.02);
+}
+
+.layout-chip-children.drag-over {
+    border-color: var(--logo-color);
+    background: rgba(26, 115, 232, 0.08);
+}
+
+.layout-chip-children.drag-over-reject {
+    border-color: #e74a3b;
+    background: rgba(231, 74, 59, 0.08);
+}
+
+.layout-chip-children.has-children .layout-chip-children-hint {
+    display: none;
+}
+
+.layout-chip-children-hint {
+    color: var(--icon-color);
+    opacity: 0.55;
+    font-size: 0.78rem;
+    padding: 0 4px;
+    pointer-events: none;
+}
+
+/* 嵌套在容器内的 chip 更小 */
+.layout-chip-children .layout-chip {
+    margin-top: 0;
+    padding: 6px 8px;
+    min-width: 100px;
+}
+
+.layout-chip-children .layout-chip .layout-chip-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.layout-chip-children .layout-chip .layout-chip-name {
+    font-size: 0.78rem;
+}
+
+.layout-chip-children .layout-chip .layout-chip-type {
+    font-size: 0.65rem;
+}
+
+/* 子 widget 的排序按钮（上/下 或 左/右） */
+.layout-chip-reorder {
+    display: inline-flex;
+    gap: 2px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.layout-chip-reorder-btn {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--modal-border);
+    background: var(--bg-color);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--icon-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.layout-chip-reorder-btn:hover:not(:disabled) {
+    background: var(--logo-color);
+    color: white;
+    border-color: var(--logo-color);
+}
+
+.layout-chip-reorder-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* × 删除按钮 */
+.layout-chip-delete {
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--icon-color);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    flex-shrink: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.layout-chip-delete:hover {
+    background: #e74a3b;
+    color: white;
+    transform: scale(1.05);
+}
+
+.layout-chip-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.layout-chip-type {
+    font-size: 0.7rem;
+    color: var(--icon-color);
+    opacity: 0.75;
+    margin-top: 2px;
+}
+
+.layout-chip.hidden {
+    opacity: 0.75;
+}
+
+/* Tray */
+.layout-tray {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px dashed var(--modal-border);
+    background: rgba(0,0,0,0.015);
+}
+
+body.dark-theme .layout-tray {
+    background: rgba(255,255,255,0.02);
+}
+
+.layout-tray-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.layout-tray-hint {
+    font-size: 0.78rem;
+    color: var(--icon-color);
+    opacity: 0.7;
+    margin: 0 0 4px;
+}
+
+.layout-tray-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 120px;
+    border-radius: 10px;
+    padding: 8px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    border: 1px dashed transparent;
+}
+
+.layout-tray-list.drag-over {
+    border-color: var(--logo-color);
+    background: rgba(26, 115, 232, 0.08);
+}
+
+.layout-tray-list.drag-over-reject {
+    border-color: #e74a3b;
+    background: rgba(231, 74, 59, 0.08);
+    cursor: not-allowed;
+}
+
+.layout-tray-list.empty {
+    align-items: center;
+    justify-content: center;
+}
+
+.layout-tray-empty {
+    color: var(--icon-color);
+    opacity: 0.55;
+    font-size: 0.85rem;
+    padding: 24px 8px;
+    text-align: center;
+}
+
+/* 响应式 —— 小屏把 tray 挤到下方 */
+@media (max-width: 768px) {
+    .layout-editor {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .layout-grid { aspect-ratio: 4 / 3; }
+}

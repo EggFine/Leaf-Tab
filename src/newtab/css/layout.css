@@ -1,35 +1,91 @@
+/* 动态网格布局 —— newtab 页面骨架 */
+
 body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    transition: background-color var(--transition-speed) var(--transition-timing), 
+    transition: background-color var(--transition-speed) var(--transition-timing),
                 color var(--transition-speed) var(--transition-timing);
     overflow: hidden;
 }
 
-.main-content {
+.widget-grid {
+    display: grid;
+    /* grid-template-rows/columns 由 JS 根据 settings.grid 动态写入 */
+    width: 100vw;
+    height: 100vh;
+    gap: 0;
+    box-sizing: border-box;
+    padding: 24px;
+}
+
+.widget-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* 同格子内多个 widget 间距 */
+    min-width: 0;
+    min-height: 0;
+    padding: 8px;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease;
+    overflow: visible; /* 允许宽内容 widget 视觉上溢出格子 */
+}
+
+/* 边角对齐：四角/四边比中心更贴边缘 */
+.widget-cell.cell-edge-top { align-items: flex-start; }
+.widget-cell.cell-edge-bottom { align-items: flex-end; }
+.widget-cell.cell-edge-left { justify-content: flex-start; }
+.widget-cell.cell-edge-right { justify-content: flex-end; }
+
+/* widget 容器 —— 默认按内容自适应，不强制铺满所在格 */
+.widget-slot {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
-    max-width: 640px;
-    padding: 0 20px;
-    transform: translateY(-8vh);
+    justify-content: center;
+    min-width: 0;
 }
 
-.top-controls {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    display: flex;
-    gap: 8px;
-    z-index: 10;
-    opacity: 0;
+/* 浮层槽：不占格，挂在 body 下 */
+.widget-float {
+    position: fixed;
+    z-index: 5;
+    pointer-events: none;
+}
+.widget-float > * { pointer-events: auto; }
+
+.widget-float[data-area="BC-float"] {
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.widget-float[data-area="TL-float"] { top: 24px; left: 24px; }
+.widget-float[data-area="TR-float"] { top: 24px; right: 24px; }
+
+/* 响应式：小屏降级为单列纵向 */
+@media (max-width: 640px) {
+    body { overflow-y: auto; }
+    .widget-grid {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        padding: 16px;
+        gap: 16px;
+    }
+    .widget-cell {
+        grid-area: unset !important;
+        padding: 4px;
+        justify-content: center;
+        align-items: center;
+        min-height: fit-content;
+    }
+}
+
+@media (max-width: 480px) {
+    .widget-grid { padding: 12px; gap: 12px; }
 }

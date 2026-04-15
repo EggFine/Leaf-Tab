@@ -2,14 +2,33 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>leaf-tab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaf Tab - 收藏</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>leaf-tab</h1>
-        <p>作者: EggFine</p>
-        <button id="actionBtn">点击这里</button>
+        <div class="header">
+            <svg class="logo" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+            <h2>Leaf Tab</h2>
+        </div>
+        <div class="content">
+            <p id="statusMsg" class="status-msg">正在获取页面信息...</p>
+            <div class="edit-area">
+                <div class="input-group">
+                    <label for="titleInput">标题</label>
+                    <input type="text" id="titleInput" placeholder="网页标题">
+                </div>
+                <div class="input-group">
+                    <label for="urlInput">链接</label>
+                    <input type="text" id="urlInput" placeholder="https://...">
+                </div>
+            </div>
+            <div class="action-footer" id="actionFooter">
+                <button id="actionBtn" class="action-btn disabled">加载中...</button>
+                <!-- 动态添加的额外按钮将出现在这里 -->
+            </div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
