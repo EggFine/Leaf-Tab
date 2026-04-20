@@ -1,0 +1,124 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一分支并发的多次 push 保留最新那次（不取消正在跑的以免遗漏已发布文件）
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 从 manifest.json 读版本，和 short-sha 拼 tag：v1.0.0-abc1234
+      - name: Resolve version & tag
+        id: meta
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          SHORT_SHA=${GITHUB_SHA::7}
+          TAG="v${VERSION}-${SHORT_SHA}"
+          NAME="leaf-tab-${VERSION}-${SHORT_SHA}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "Tag: $TAG"
+
+      # 收集扩展需要的文件到 dist/leaf-tab/；排除仓库元信息
+      - name: Stage extension payload
+        run: |
+          mkdir -p dist/leaf-tab
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='dist' \
+            --exclude='node_modules' \
+            --exclude='.gitignore' \
+            --exclude='README.md' \
+            --exclude='LICENSE' \
+            --exclude='*.zip' \
+            --exclude='*.crx' \
+            --exclude='*.pem' \
+            ./ dist/leaf-tab/
+          echo "Payload files:"
+          find dist/leaf-tab -type f | sort
+
+      - name: Build ZIP
+        run: |
+          cd dist
+          zip -r "${{ steps.meta.outputs.name }}.zip" leaf-tab
+          ls -la
+
+      # CRX 需要用户在仓库 Settings → Secrets → Actions 里配 CRX_PRIVATE_KEY（.pem 内容）
+      # 没配就跳过，workflow 仍然成功
+      - name: Check CRX key availability
+        id: crx_key
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          if [ -n "$CRX_PRIVATE_KEY" ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "::notice::CRX_PRIVATE_KEY secret not set — skipping CRX build. Add it to produce signed .crx artifacts."
+          fi
+
+      # 用 Ubuntu runner 预装的 google-chrome 打 CRX3（格式与 Chrome 商店一致）
+      # --pack-extension 会在源目录的父级生成 <dirname>.crx
+      - name: Build CRX via Chrome
+        if: steps.crx_key.outputs.available == 'true'
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          set -e
+          KEY_PATH="$RUNNER_TEMP/leaf-tab.pem"
+          printf '%s\n' "$CRX_PRIVATE_KEY" > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+
+          if ! command -v google-chrome >/dev/null 2>&1; then
+            echo "::error::google-chrome not found on runner"
+            exit 1
+          fi
+
+          google-chrome \
+            --no-sandbox \
+            --headless=new \
+            --pack-extension="$PWD/dist/leaf-tab" \
+            --pack-extension-key="$KEY_PATH" || true
+
+          # Chrome 输出到 dist/leaf-tab.crx；改名对齐 zip
+          if [ -f "dist/leaf-tab.crx" ]; then
+            mv "dist/leaf-tab.crx" "dist/${{ steps.meta.outputs.name }}.crx"
+            echo "CRX built: dist/${{ steps.meta.outputs.name }}.crx"
+          else
+            echo "::warning::Chrome did not produce a .crx file; skipping CRX upload"
+          fi
+
+          rm -f "$KEY_PATH" "dist/leaf-tab.pem"
+          ls -la dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: Leaf-Tab ${{ steps.meta.outputs.version }} (${{ steps.meta.outputs.short_sha }})
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          files: |
+            dist/${{ steps.meta.outputs.name }}.zip
+            dist/${{ steps.meta.outputs.name }}.crx
