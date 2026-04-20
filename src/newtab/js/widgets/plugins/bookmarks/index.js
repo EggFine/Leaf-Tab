@@ -1,5 +1,8 @@
 // bookmarks plugin —— 收藏网格
-// 由原 src/newtab/js/bookmarks.js 改造：DOM 自建，showTitles 从 ctx.config 读取
+// 数据层统一走 src/common/bookmarks.js（chrome.storage.local + 一次性迁移）
+
+import { loadBookmarks, saveBookmarks, onBookmarksChanged } from '../../../../../common/bookmarks.js';
+import { reportError } from '../../../../../common/errors.js';
 
 const FALLBACK_COLORS = [
     '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
@@ -8,20 +11,25 @@ const FALLBACK_COLORS = [
 
 const BOOKMARK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>`;
 
-const BOOKMARKS_STORAGE_KEY = 'leaf-bookmarks';
-
 let rootEl = null;
 let grid = null;
 let ctxRef = null;
-let storageListener = null;
+let unsubscribeStorage = null;
 
 function getFallbackColor(title) {
     let hash = 0;
-    for (let i = 0; i < title.length; i++) {
-        hash = title.charCodeAt(i) + ((hash << 5) - hash);
+    const str = String(title || '');
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
     const index = Math.abs(hash % FALLBACK_COLORS.length);
     return FALLBACK_COLORS[index];
+}
+
+function escapeAttr(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
 }
 
 function renderBookmarks(bookmarks) {
@@ -55,27 +63,27 @@ function renderBookmarks(bookmarks) {
         let iconHtml = '';
         if (bookmark.icon) {
             iconHtml = `
-                <img src="${bookmark.icon}" alt="" class="bookmark-icon-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <img src="${escapeAttr(bookmark.icon)}" alt="" class="bookmark-icon-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div class="bookmark-fallback-icon" style="display:none; background-color: ${color};">
-                    ${firstChar}
+                    ${escapeAttr(firstChar)}
                 </div>
             `;
         } else {
             iconHtml = `
                 <div class="bookmark-fallback-icon" style="background-color: ${color};">
-                    ${firstChar}
+                    ${escapeAttr(firstChar)}
                 </div>
             `;
         }
 
         const titleHtml = showTitles
-            ? `<div class="bookmark-title">${bookmark.title}</div>`
+            ? `<div class="bookmark-title">${escapeAttr(bookmark.title)}</div>`
             : '';
 
         item.innerHTML = `
             <div class="bookmark-icon-wrapper">
                 ${iconHtml}
-                <button class="delete-bookmark-btn" aria-label="删除收藏" data-url="${bookmark.url}">
+                <button class="delete-bookmark-btn" aria-label="删除收藏" data-url="${escapeAttr(bookmark.url)}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
@@ -114,21 +122,20 @@ function renderBookmarks(bookmarks) {
 
 async function loadAndRender() {
     try {
-        const result = await chrome.storage.sync.get(BOOKMARKS_STORAGE_KEY);
-        renderBookmarks(result[BOOKMARKS_STORAGE_KEY] || []);
-    } catch (e) {
-        console.error('Failed to load bookmarks', e);
+        const list = await loadBookmarks();
+        renderBookmarks(list);
+    } catch (err) {
+        reportError('bookmarks.widget.load', err);
     }
 }
 
 async function removeBookmark(url) {
     try {
-        const result = await chrome.storage.sync.get(BOOKMARKS_STORAGE_KEY);
-        let bookmarks = result[BOOKMARKS_STORAGE_KEY] || [];
-        bookmarks = bookmarks.filter(b => b.url !== url);
-        await chrome.storage.sync.set({ [BOOKMARKS_STORAGE_KEY]: bookmarks });
-    } catch (e) {
-        console.error('Failed to remove bookmark', e);
+        const list = await loadBookmarks();
+        const filtered = list.filter(b => b.url !== url);
+        await saveBookmarks(filtered);
+    } catch (err) {
+        reportError('bookmarks.widget.remove', err, { url });
     }
 }
 
@@ -159,20 +166,17 @@ const manifest = {
 
         grid = rootEl.querySelector('[data-role="grid"]');
 
-        storageListener = (changes, namespace) => {
-            if (namespace !== 'sync') return;
-            if (!changes[BOOKMARKS_STORAGE_KEY]) return;
-            renderBookmarks(changes[BOOKMARKS_STORAGE_KEY].newValue || []);
-        };
-        chrome.storage.onChanged.addListener(storageListener);
+        unsubscribeStorage = onBookmarksChanged((list) => {
+            renderBookmarks(list);
+        });
 
         loadAndRender();
     },
 
     unmount() {
-        if (storageListener) {
-            chrome.storage.onChanged.removeListener(storageListener);
-            storageListener = null;
+        if (typeof unsubscribeStorage === 'function') {
+            unsubscribeStorage();
+            unsubscribeStorage = null;
         }
         rootEl?.remove();
         rootEl = null;

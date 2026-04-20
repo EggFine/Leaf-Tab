@@ -200,6 +200,76 @@ body.dark-theme .plugin-card-body {
     opacity: 0.8;
 }
 
+/* 插件配置控件（select / number / text / color） —— 共用视觉 */
+.plugin-config-select,
+.plugin-config-input {
+    padding: 8px 12px;
+    min-width: 140px;
+    max-width: 240px;
+    background: var(--select-bg);
+    border: 1px solid var(--select-border);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 0.92rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.plugin-config-select:focus,
+.plugin-config-input:focus {
+    outline: none;
+    border-color: var(--logo-color);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+}
+
+.plugin-config-select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a8a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.plugin-config-input[type="number"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+.plugin-config-color {
+    width: 44px;
+    height: 32px;
+    border: 1px solid var(--select-border);
+    border-radius: 8px;
+    padding: 2px;
+    background: var(--select-bg);
+    cursor: pointer;
+}
+
+.plugin-config-color::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
+}
+
+.plugin-config-color::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border: none;
+}
+
+@media (max-width: 480px) {
+    .plugin-config-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .plugin-config-select,
+    .plugin-config-input {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
 /* ============================================================
  * 布局 DIY tab 样式
  * ============================================================ */
@@ -686,6 +756,49 @@ body.dark-theme .layout-tray {
 @media (max-width: 768px) {
     .layout-editor {
         grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
     }
     .layout-grid { aspect-ratio: 4 / 3; }
+    .layout-toolbar {
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    .layout-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 0;
+    }
+    /* 移动端触控更友好：排序按钮稍大一点，点击区域更宽 */
+    .layout-chip-reorder-btn {
+        width: 26px;
+        height: 26px;
+    }
+    .layout-chip-delete {
+        width: 26px;
+        height: 26px;
+        font-size: 1.1rem;
+    }
+    .layout-tray {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .layout-grid { aspect-ratio: 1 / 1; gap: 6px; padding: 10px; }
+    .layout-cell { padding: 6px; }
+    .layout-cell-label { font-size: 0.6rem; }
+    .layout-chip {
+        padding: 6px 8px;
+        margin-top: 10px;
+    }
+    .layout-chip-icon {
+        width: 18px;
+        height: 18px;
+    }
+    .layout-chip-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+    .layout-chip-name { font-size: 0.78rem; }
+    .layout-chip-type { font-size: 0.62rem; }
 }

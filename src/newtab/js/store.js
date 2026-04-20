@@ -1,3 +1,6 @@
+import { readStorage, writeStorage } from '../../common/storage.js';
+import { reportError } from '../../common/errors.js';
+
 export const SETTINGS_KEY = 'leaf-settings';
 export const SCHEMA_VERSION = 2;
 
@@ -240,6 +243,45 @@ function normalizeWidgets(rawWidgets, gridDims) {
         }
     }
 
+    // 三次验证：检测 parentId 链上的循环引用（A→B→A 甚至自引用 A→A）
+    // 存在循环则切断离起点最远的那条边，将该 widget 放回 tray
+    for (const startId of Object.keys(out)) {
+        if (typeof out[startId].parentId !== 'string') continue;
+        const visited = new Set();
+        let cursor = startId;
+        let safety = 0;
+        while (cursor && safety < 64) {
+            if (visited.has(cursor)) {
+                // 循环：切断 cursor 自己的 parentId
+                const entry = out[cursor];
+                if (entry) {
+                    delete entry.parentId;
+                    entry.visible = false;
+                    if (!Number.isInteger(entry.row) && !entry.cell) {
+                        entry.row = 1;
+                        entry.col = 1;
+                    }
+                }
+                break;
+            }
+            visited.add(cursor);
+            const next = out[cursor]?.parentId;
+            if (typeof next !== 'string') break;
+            // 自引用 A.parentId === A
+            if (next === cursor) {
+                delete out[cursor].parentId;
+                out[cursor].visible = false;
+                if (!Number.isInteger(out[cursor].row) && !out[cursor].cell) {
+                    out[cursor].row = 1;
+                    out[cursor].col = 1;
+                }
+                break;
+            }
+            cursor = next;
+            safety++;
+        }
+    }
+
     return out;
 }
 
@@ -325,20 +367,20 @@ async function migrateLegacySettings() {
     try {
         const parsed = JSON.parse(saved);
         const migratedSettings = normalizeSettings(parsed);
-        await chrome.storage[STORAGE_AREA].set({ [SETTINGS_KEY]: migratedSettings });
+        await writeStorage(SETTINGS_KEY, migratedSettings, { area: STORAGE_AREA });
         window.localStorage.removeItem(SETTINGS_KEY);
         return migratedSettings;
     } catch (error) {
-        console.error('Failed to migrate legacy settings', error);
-        window.localStorage.removeItem(SETTINGS_KEY);
+        reportError('store.migrateLegacy', error);
+        try { window.localStorage.removeItem(SETTINGS_KEY); } catch {}
         return null;
     }
 }
 
 export async function loadSettings() {
     try {
-        const stored = await chrome.storage[STORAGE_AREA].get(SETTINGS_KEY);
-        let rawSettings = stored[SETTINGS_KEY];
+        const { value: rawFromStorage } = await readStorage(SETTINGS_KEY, { area: STORAGE_AREA });
+        let rawSettings = rawFromStorage;
 
         if (rawSettings === undefined) {
             const migratedSettings = await migrateLegacySettings();
@@ -348,19 +390,19 @@ export async function loadSettings() {
             }
 
             rawSettings = cloneSettings(defaultSettings);
-            await chrome.storage[STORAGE_AREA].set({ [SETTINGS_KEY]: rawSettings });
+            await writeStorage(SETTINGS_KEY, rawSettings, { area: STORAGE_AREA });
         }
 
         const normalizedSettings = normalizeSettings(rawSettings);
         currentSettings = normalizedSettings;
 
         if (shouldPersistNormalizedSettings(rawSettings, normalizedSettings)) {
-            await chrome.storage[STORAGE_AREA].set({ [SETTINGS_KEY]: normalizedSettings });
+            await writeStorage(SETTINGS_KEY, normalizedSettings, { area: STORAGE_AREA });
         }
 
         return currentSettings;
     } catch (error) {
-        console.error('Failed to load settings', error);
+        reportError('store.load', error);
         currentSettings = cloneSettings(defaultSettings);
         return currentSettings;
     }
@@ -371,10 +413,18 @@ export async function saveSettings(settings = currentSettings) {
     currentSettings = normalizedSettings;
 
     try {
-        await chrome.storage[STORAGE_AREA].set({ [SETTINGS_KEY]: normalizedSettings });
+        await writeStorage(SETTINGS_KEY, normalizedSettings, {
+            area: STORAGE_AREA,
+            onFallback: ({ reason, fromArea, toArea }) => {
+                reportError('store.save.fallback',
+                    new Error(`settings 超出 ${fromArea} 配额（${reason}），已降级至 ${toArea}`),
+                    { key: SETTINGS_KEY, reason, fromArea, toArea }
+                );
+            }
+        });
         return currentSettings;
     } catch (error) {
-        console.error('Failed to save settings', error);
+        reportError('store.save', error);
         throw error;
     }
 }
@@ -635,14 +685,24 @@ export async function resetLayout() {
 }
 
 export function onSettingsChanged(listener) {
+    // 同时监听 sync 与 local：当配额降级时，settings 可能落在 local
     const handleStorageChange = (changes, areaName) => {
-        if (areaName !== STORAGE_AREA || !changes[SETTINGS_KEY]) {
+        if ((areaName !== 'sync' && areaName !== 'local') || !changes[SETTINGS_KEY]) {
             return;
         }
 
-        currentSettings = normalizeSettings(changes[SETTINGS_KEY].newValue);
+        try {
+            currentSettings = normalizeSettings(changes[SETTINGS_KEY].newValue);
+        } catch (err) {
+            reportError('store.onChanged.normalize', err);
+            return;
+        }
         if (listener) {
-            listener(currentSettings, changes[SETTINGS_KEY]);
+            try {
+                listener(currentSettings, changes[SETTINGS_KEY]);
+            } catch (err) {
+                reportError('store.onChanged.listener', err);
+            }
         }
     };
 

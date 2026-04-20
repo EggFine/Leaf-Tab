@@ -6,6 +6,8 @@ import {
     updateWidget,
     onSettingsChanged
 } from '../../../newtab/js/store.js';
+import { reportError } from '../../../common/errors.js';
+import { toastError } from '../../../common/toast.js';
 
 // Widget 注册表（读取 manifest 用）
 // 直接静态 import 所有插件 manifest；core 不在商城中展示
@@ -35,18 +37,20 @@ function renderConfigRow(manifest, configKey, schema) {
     const currentVal = currentSettings.widgets?.[manifest.id]?.config?.[configKey]
         ?? schema.default;
     const inputId = `plugin-${manifest.id}-cfg-${configKey}`;
+    const labelBlock = `
+        <div class="plugin-config-label">
+            <label for="${inputId}">${escapeHtml(schema.label)}</label>
+            ${schema.description ? `<div class="plugin-config-desc">${escapeHtml(schema.description)}</div>` : ''}
+        </div>
+    `;
+    const dataAttrs = `data-plugin-id="${escapeHtml(manifest.id)}" data-config-key="${escapeHtml(configKey)}"`;
 
     if (schema.type === 'toggle') {
         return `
             <div class="plugin-config-row">
-                <div class="plugin-config-label">
-                    <label for="${inputId}">${escapeHtml(schema.label)}</label>
-                    ${schema.description ? `<div class="plugin-config-desc">${escapeHtml(schema.description)}</div>` : ''}
-                </div>
+                ${labelBlock}
                 <label class="toggle-switch">
-                    <input type="checkbox" id="${inputId}"
-                           data-plugin-id="${manifest.id}"
-                           data-config-key="${configKey}"
+                    <input type="checkbox" id="${inputId}" ${dataAttrs}
                            data-config-type="toggle"
                            ${currentVal ? 'checked' : ''}>
                     <span class="slider round"></span>
@@ -54,7 +58,71 @@ function renderConfigRow(manifest, configKey, schema) {
             </div>
         `;
     }
-    // 其他类型可扩展：text/select/number 等
+
+    if (schema.type === 'select') {
+        const options = Array.isArray(schema.options) ? schema.options : [];
+        const optionsHtml = options.map(opt => {
+            const val = opt?.value ?? '';
+            const label = opt?.label ?? String(val);
+            const selected = String(currentVal) === String(val) ? 'selected' : '';
+            return `<option value="${escapeHtml(val)}" ${selected}>${escapeHtml(label)}</option>`;
+        }).join('');
+        return `
+            <div class="plugin-config-row">
+                ${labelBlock}
+                <select class="plugin-config-select" id="${inputId}" ${dataAttrs}
+                        data-config-type="select">
+                    ${optionsHtml}
+                </select>
+            </div>
+        `;
+    }
+
+    if (schema.type === 'number') {
+        const min = Number.isFinite(schema.min) ? `min="${schema.min}"` : '';
+        const max = Number.isFinite(schema.max) ? `max="${schema.max}"` : '';
+        const step = Number.isFinite(schema.step) ? `step="${schema.step}"` : 'step="1"';
+        const numVal = Number.isFinite(currentVal) ? currentVal : (schema.default ?? 0);
+        return `
+            <div class="plugin-config-row">
+                ${labelBlock}
+                <input type="number" class="plugin-config-input" id="${inputId}" ${dataAttrs}
+                       data-config-type="number"
+                       ${min} ${max} ${step}
+                       value="${escapeHtml(numVal)}">
+            </div>
+        `;
+    }
+
+    if (schema.type === 'text') {
+        const placeholder = schema.placeholder ? `placeholder="${escapeHtml(schema.placeholder)}"` : '';
+        const maxLength = Number.isFinite(schema.maxLength) ? `maxlength="${schema.maxLength}"` : '';
+        const val = currentVal == null ? '' : String(currentVal);
+        return `
+            <div class="plugin-config-row">
+                ${labelBlock}
+                <input type="text" class="plugin-config-input" id="${inputId}" ${dataAttrs}
+                       data-config-type="text"
+                       ${placeholder} ${maxLength}
+                       value="${escapeHtml(val)}">
+            </div>
+        `;
+    }
+
+    if (schema.type === 'color') {
+        const val = typeof currentVal === 'string' && /^#[0-9a-fA-F]{6}$/.test(currentVal)
+            ? currentVal
+            : (schema.default || '#4e73df');
+        return `
+            <div class="plugin-config-row">
+                ${labelBlock}
+                <input type="color" class="plugin-config-color" id="${inputId}" ${dataAttrs}
+                       data-config-type="color"
+                       value="${escapeHtml(val)}">
+            </div>
+        `;
+    }
+
     return '';
 }
 
@@ -153,7 +221,8 @@ function bindEvents(root) {
                 await installPlugin(id);
             }
         } catch (err) {
-            console.error(err);
+            reportError('plugins.install', err, { id });
+            toastError('操作失败：请稍后重试');
         } finally {
             btn.disabled = false;
         }
@@ -168,22 +237,59 @@ function bindEvents(root) {
         try {
             await updateWidget(id, { visible: input.checked });
         } catch (err) {
-            console.error(err);
+            reportError('plugins.visibility', err, { id });
+            toastError('设置未能保存');
+            input.checked = !input.checked; // 回滚 UI
         }
     });
 
-    // 插件 config toggle
-    root.addEventListener('change', async (e) => {
-        const input = e.target.closest('input[data-config-type="toggle"]');
-        if (!input) return;
+    // 统一的 config 变更处理（toggle/select/number/text/color）
+    const handleConfigChange = async (input) => {
         const id = input.dataset.pluginId;
         const key = input.dataset.configKey;
-        if (!id || !key) return;
-        try {
-            await updateWidget(id, { config: { [key]: input.checked } });
-        } catch (err) {
-            console.error(err);
+        const type = input.dataset.configType;
+        if (!id || !key || !type) return;
+
+        let value;
+        if (type === 'toggle') {
+            value = input.checked;
+        } else if (type === 'number') {
+            const parsed = parseFloat(input.value);
+            if (!Number.isFinite(parsed)) return;
+            value = parsed;
+        } else if (type === 'select' || type === 'text' || type === 'color') {
+            value = input.value;
+        } else {
+            return;
         }
+
+        try {
+            await updateWidget(id, { config: { [key]: value } });
+        } catch (err) {
+            reportError('plugins.config', err, { id, key, type });
+            toastError('配置未能保存');
+        }
+    };
+
+    root.addEventListener('change', (e) => {
+        const input = e.target.closest('[data-config-type]');
+        if (!input) return;
+        void handleConfigChange(input);
+    });
+
+    // text/color/number 的实时 input 事件（不等失焦）
+    let inputTimer = null;
+    root.addEventListener('input', (e) => {
+        const input = e.target.closest('[data-config-type]');
+        if (!input) return;
+        const type = input.dataset.configType;
+        // toggle/select 由 change 触发即可；text/number/color 走 debounce
+        if (type !== 'text' && type !== 'number' && type !== 'color') return;
+        if (inputTimer) clearTimeout(inputTimer);
+        inputTimer = setTimeout(() => {
+            inputTimer = null;
+            void handleConfigChange(input);
+        }, 300);
     });
 }
 

@@ -1,5 +1,25 @@
 import { loadSettings, updateSettings, onSettingsChanged, currentSettings } from '../../newtab/js/store.js';
 import { applyTheme } from '../../newtab/js/theme.js';
+import { subscribeToErrors } from '../../common/errors.js';
+import { toastError, toastWarning } from '../../common/toast.js';
+
+// 错误通道 → toast
+subscribeToErrors((payload) => {
+    if (payload.source.startsWith('store.save.fallback')) {
+        toastWarning(payload.message, { duration: 5000 });
+        return;
+    }
+    if (payload.source.startsWith('store.') || payload.source.startsWith('storage.')) {
+        toastError(`存储异常：${payload.message}`);
+    }
+});
+
+window.addEventListener('error', (e) => {
+    try { console.error('[leaf-tab:settings:onerror]', e.error || e.message); } catch {}
+});
+window.addEventListener('unhandledrejection', (e) => {
+    try { console.error('[leaf-tab:settings:unhandledrejection]', e.reason); } catch {}
+});
 
 // Tab 配置
 const TAB_CONFIG = {
@@ -391,21 +411,99 @@ async function initializeSettingsPage() {
         });
     }
 
-    // 3. 选项卡切换逻辑
+    // 3. 选项卡切换逻辑 + 移动端抽屉
     const menuItems = document.querySelectorAll('.menu-item');
+    const sidebar = document.querySelector('.settings-sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+
+    let drawerOpen = false;
+    let lastFocusedBeforeDrawer = null;
+
+    function isMobileView() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function toggleMenu(isOpen) {
+        drawerOpen = !!isOpen;
+        if (sidebar) {
+            sidebar.classList.toggle('open', drawerOpen);
+            // 移动端用 inert 阻止焦点与事件；桌面端始终可交互
+            if (isMobileView()) {
+                if (drawerOpen) sidebar.removeAttribute('inert');
+                else sidebar.setAttribute('inert', '');
+            } else {
+                sidebar.removeAttribute('inert');
+            }
+        }
+        if (overlay) overlay.classList.toggle('active', drawerOpen);
+        document.body.style.overflow = drawerOpen ? 'hidden' : '';
+        if (drawerOpen) {
+            lastFocusedBeforeDrawer = document.activeElement;
+            const first = sidebar?.querySelector('.menu-item');
+            if (first) {
+                setTimeout(() => first.focus({ preventScroll: true }), 60);
+            }
+        } else if (lastFocusedBeforeDrawer && typeof lastFocusedBeforeDrawer.focus === 'function') {
+            lastFocusedBeforeDrawer.focus({ preventScroll: true });
+            lastFocusedBeforeDrawer = null;
+        }
+    }
+
+    // 首次根据视口设置 inert 状态
+    if (sidebar && isMobileView()) {
+        sidebar.setAttribute('inert', '');
+    }
+
+    if (menuToggleBtn) {
+        menuToggleBtn.addEventListener('click', () => toggleMenu(!drawerOpen));
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', () => toggleMenu(false));
+    }
+
+    // ESC 关闭抽屉
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && drawerOpen) {
+            e.preventDefault();
+            toggleMenu(false);
+        }
+    });
+
+    // 断点跨越：从移动端调大窗口时，关闭抽屉状态（否则桌面视图会错乱）
+    const mqDesktop = window.matchMedia('(min-width: 769px)');
+    const handleBreakpointChange = () => {
+        if (!isMobileView()) {
+            // 进入桌面视图：关抽屉状态 + 清 inert
+            if (drawerOpen) toggleMenu(false);
+            sidebar?.removeAttribute('inert');
+        } else if (!drawerOpen) {
+            sidebar?.setAttribute('inert', '');
+        }
+    };
+    if (typeof mqDesktop.addEventListener === 'function') {
+        mqDesktop.addEventListener('change', handleBreakpointChange);
+    } else if (typeof mqDesktop.addListener === 'function') {
+        mqDesktop.addListener(handleBreakpointChange);
+    }
 
     menuItems.forEach(item => {
         item.addEventListener('click', async () => {
             const targetTab = item.getAttribute('data-tab');
+
+            // 移动端选中后收起抽屉
+            if (isMobileView()) {
+                toggleMenu(false);
+            }
+
             if (targetTab === currentTab) {
                 return;
             }
 
-            // 更新菜单高亮
             menuItems.forEach(btn => btn.classList.remove('active'));
             item.classList.add('active');
 
-            // 加载新 tab 内容
             currentTab = targetTab;
             await loadTabContent(targetTab);
         });

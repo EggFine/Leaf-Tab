@@ -2,6 +2,8 @@ import { loadSettings, onSettingsChanged, currentSettings } from './store.js';
 import { applyTheme } from './theme.js';
 import { registerWidget } from './widgetRegistry.js';
 import { initLayout, relayout, notifyWidgetsSettingsChanged } from './layout.js';
+import { subscribeToErrors } from '../../common/errors.js';
+import { toastError, toastWarning } from '../../common/toast.js';
 
 // Core widgets
 import searchManifest from './widgets/core/search.js';
@@ -26,6 +28,32 @@ import bookmarksManifest from './widgets/plugins/bookmarks/index.js';
     colContainerManifest,
     bookmarksManifest
 ].forEach(registerWidget);
+
+// 把错误通道接到 toast
+subscribeToErrors((payload) => {
+    // widget 内部生命周期错误噪音太大，不打扰用户；其余都给个提示
+    if (/^widget\./.test(payload.source)) return;
+    if (payload.source.startsWith('store.save.fallback')) {
+        toastWarning(payload.message, { duration: 5000 });
+        return;
+    }
+    if (payload.source.startsWith('store.') || payload.source.startsWith('storage.')) {
+        toastError(`存储异常：${payload.message}`);
+        return;
+    }
+});
+
+// 捕获 widget 里未 try/catch 到的冒泡错误
+window.addEventListener('error', (e) => {
+    // 忽略扩展 URL 外的第三方脚本（理论上不会有）
+    if (!e.filename || e.filename.startsWith(chrome.runtime?.getURL?.('') || '')) {
+        // 静默记录（toast 会太吵）
+        try { console.error('[leaf-tab:window.onerror]', e.error || e.message); } catch {}
+    }
+});
+window.addEventListener('unhandledrejection', (e) => {
+    try { console.error('[leaf-tab:unhandledrejection]', e.reason); } catch {}
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     void initializeNewTab();

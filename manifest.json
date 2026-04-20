@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "leaf-tab",
   "version": "1.0.0",
-  "description": "A basic Edge extension skeleton.",
+  "description": "简约优雅的导航页",
   "author": "EggFine",
   "chrome_url_overrides": {
     "newtab": "src/newtab/index.html"
@@ -18,9 +18,5 @@
   "background": {
     "service_worker": "src/background/background.js"
   },
-  "permissions": [
-    "storage",
-    "activeTab",
-    "tabs"
-  ]
+  "permissions": ["storage", "activeTab", "tabs"]
 }
