@@ -8,8 +8,8 @@ let rootEl = null;
 const manifest = {
     id: 'brand',
     type: 'core',
-    name: '品牌 Logo',
-    description: '页面底部的 Leaf Tab 品牌水印',
+    name: 'widget.brand.name',
+    description: 'widget.brand.description',
     icon: LEAF_ICON,
     version: '1.0.0',
     author: 'Leaf Tab',

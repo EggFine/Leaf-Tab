@@ -1,25 +1,13 @@
-// Search core widget ——  搜索框 + 引擎显示
-// 由原 src/newtab/js/search.js 改造：挂载函数化，DOM 自建，无全局 id 依赖
+// Search core widget —— 搜索框 + 引擎显示
+// 由原 src/newtab/js/search.js 改造:挂载函数化,DOM 自建,无全局 id 依赖
 
+import { t } from '../../../../common/i18n.js';
+
+// 引擎名称(口号/短名)走 i18n;此处只保存 URL 与图标路径
 const engines = {
-    bing: {
-        url: 'https://www.bing.com/search?q=',
-        name: '必应，有求必应',
-        name_en: 'Bing',
-        icon: 'assets/bing.svg'
-    },
-    google: {
-        url: 'https://www.google.com/search?q=',
-        name: 'Google 谷歌',
-        name_en: 'Google',
-        icon: 'assets/google.svg'
-    },
-    baidu: {
-        url: 'https://www.baidu.com/s?wd=',
-        name: '百度一下，你就知道',
-        name_en: 'Baidu',
-        icon: 'assets/baidu.svg'
-    }
+    bing:   { url: 'https://www.bing.com/search?q=', icon: 'assets/bing.svg' },
+    google: { url: 'https://www.google.com/search?q=', icon: 'assets/google.svg' },
+    baidu:  { url: 'https://www.baidu.com/s?wd=', icon: 'assets/baidu.svg' }
 };
 
 const ICON_SEARCH = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
@@ -58,15 +46,17 @@ function performSearch() {
 function updateDisplay() {
     const engineKey = getSettingsRef().engine || 'bing';
     const engineInfo = engines[engineKey] || engines.bing;
+    const shortName = t(`engine.${engineKey}.shortName`);
+    const tagline = t(`engine.${engineKey}.tagline`);
 
     if (searchInput) {
-        searchInput.placeholder = `在 ${engineInfo.name_en} 上搜索...`;
+        searchInput.placeholder = t('search.placeholder', { engine: shortName });
     }
 
     if (engineDisplay) {
         engineDisplay.innerHTML = `
             <div class="engine-icon" style="-webkit-mask-image: url('${engineInfo.icon}'); mask-image: url('${engineInfo.icon}');"></div>
-            <h1>${engineInfo.name}</h1>
+            <h1>${tagline}</h1>
         `;
     }
 }
@@ -74,8 +64,8 @@ function updateDisplay() {
 const manifest = {
     id: 'search',
     type: 'core',
-    name: '搜索',
-    description: '中央搜索框，可切换搜索引擎',
+    name: 'widget.search.name',
+    description: 'widget.search.description',
     icon: ICON_SEARCH,
     version: '1.0.0',
     author: 'Leaf Tab',
@@ -92,8 +82,8 @@ const manifest = {
             <div class="engine-display" id="engineDisplay"></div>
             <div class="search-container">
                 <span class="search-icon">${ICON_SEARCH}</span>
-                <input type="text" id="searchInput" class="search-input" placeholder="在网络上搜索..." autocomplete="off">
-                <button type="button" id="searchBtn" class="search-btn" aria-label="搜索">${ICON_ARROW}</button>
+                <input type="text" id="searchInput" class="search-input" placeholder="${t('search.placeholder.fallback')}" autocomplete="off">
+                <button type="button" id="searchBtn" class="search-btn" aria-label="${t('search.btn.aria')}">${ICON_ARROW}</button>
             </div>
         `;
         container.appendChild(rootEl);
@@ -113,7 +103,7 @@ const manifest = {
 
         updateDisplay();
 
-        // 延迟自动聚焦（给入场动画留时间）
+        // 延迟自动聚焦(给入场动画留时间)
         setTimeout(() => {
             searchInput?.focus();
         }, 100);

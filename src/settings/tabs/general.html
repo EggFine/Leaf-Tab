@@ -1,6 +1,23 @@
 <div class="setting-group">
-    <p class="setting-desc">在这里配置你的基础偏好。收藏、布局等功能已迁移至对应的独立页面：
-    <br>· <strong>插件商城</strong> —— 启用/禁用插件与修改插件配置
-    <br>· <strong>布局 DIY</strong> —— 自定义每个模块的位置
-    </p>
+    <p class="setting-desc" data-i18n="settings.general.desc">在这里配置你的基础偏好。收藏、布局等功能已迁移至对应的独立页面:</p>
+    <p class="setting-desc" data-i18n-html="settings.general.bullet.plugins">· <strong>插件商城</strong> —— 启用/禁用插件与修改插件配置</p>
+    <p class="setting-desc" data-i18n-html="settings.general.bullet.layout">· <strong>布局 DIY</strong> —— 自定义每个模块的位置</p>
+</div>
+
+<div class="setting-group">
+    <div class="setting-item">
+        <label data-i18n="settings.general.language.label">界面语言</label>
+        <div class="custom-select-wrapper" id="languageSelect">
+            <div class="custom-select" tabindex="0">
+                <span class="selected-value" data-i18n="settings.language.system">跟随系统</span>
+                <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="custom-options">
+                <div class="custom-option" data-value="system" data-i18n="settings.language.system">跟随系统</div>
+                <div class="custom-option" data-value="zh-CN" data-i18n="settings.language.zhCN">简体中文</div>
+                <div class="custom-option" data-value="en" data-i18n="settings.language.en">English</div>
+                <div class="custom-option" data-value="ja" data-i18n="settings.language.ja">日本語</div>
+            </div>
+        </div>
+    </div>
 </div>

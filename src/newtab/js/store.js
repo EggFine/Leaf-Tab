@@ -1,5 +1,6 @@
 import { readStorage, writeStorage } from '../../common/storage.js';
 import { reportError } from '../../common/errors.js';
+import { t } from '../../common/i18n.js';
 
 export const SETTINGS_KEY = 'leaf-settings';
 export const SCHEMA_VERSION = 2;
@@ -46,6 +47,7 @@ export const defaultSettings = {
     schemaVersion: SCHEMA_VERSION,
     theme: 'system',                // 'system' | 'light' | 'dark'
     engine: 'bing',                 // 'bing' | 'google' | 'baidu'
+    language: 'system',             // 'system' | 'zh-CN' | 'en' | 'ja'
     grid: { ...DEFAULT_GRID },
     installedPlugins: [...DEFAULT_INSTALLED_PLUGINS],
     widgets: cloneWidgets(DEFAULT_WIDGETS)
@@ -54,6 +56,7 @@ export const defaultSettings = {
 const STORAGE_AREA = 'sync';
 const validThemes = new Set(['system', 'light', 'dark']);
 const validEngines = new Set(['bing', 'google', 'baidu']);
+const validLanguages = new Set(['system', 'zh-CN', 'en', 'ja']);
 
 export let currentSettings = cloneSettings(defaultSettings);
 
@@ -333,6 +336,7 @@ function normalizeSettings(rawSettings) {
         schemaVersion: SCHEMA_VERSION,
         theme: validThemes.has(source.theme) ? source.theme : defaultSettings.theme,
         engine: validEngines.has(source.engine) ? source.engine : defaultSettings.engine,
+        language: validLanguages.has(source.language) ? source.language : defaultSettings.language,
         grid,
         installedPlugins: normalizeInstalledPlugins(source.installedPlugins),
         widgets: normalizeWidgets(source.widgets, grid)
@@ -417,7 +421,7 @@ export async function saveSettings(settings = currentSettings) {
             area: STORAGE_AREA,
             onFallback: ({ reason, fromArea, toArea }) => {
                 reportError('store.save.fallback',
-                    new Error(`settings 超出 ${fromArea} 配额（${reason}），已降级至 ${toArea}`),
+                    new Error(t('error.toast.quotaFallback', { fromArea, toArea, reason })),
                     { key: SETTINGS_KEY, reason, fromArea, toArea }
                 );
             }

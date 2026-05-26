@@ -1,0 +1,14 @@
+{
+    "extName": {
+        "message": "Leaf Tab",
+        "description": "Extension name"
+    },
+    "extDescription": {
+        "message": "A minimal, elegant browser start page",
+        "description": "Extension description"
+    },
+    "extActionTitle": {
+        "message": "Leaf Tab",
+        "description": "Toolbar icon title"
+    }
+}

@@ -8,6 +8,7 @@ import {
 } from '../../../newtab/js/store.js';
 import { reportError } from '../../../common/errors.js';
 import { toastError } from '../../../common/toast.js';
+import { t } from '../../../common/i18n.js';
 
 // Widget 注册表（读取 manifest 用）
 // 直接静态 import 所有插件 manifest；core 不在商城中展示
@@ -37,10 +38,12 @@ function renderConfigRow(manifest, configKey, schema) {
     const currentVal = currentSettings.widgets?.[manifest.id]?.config?.[configKey]
         ?? schema.default;
     const inputId = `plugin-${manifest.id}-cfg-${configKey}`;
+    const labelText = t(schema.label);
+    const descText = schema.description ? t(schema.description) : '';
     const labelBlock = `
         <div class="plugin-config-label">
-            <label for="${inputId}">${escapeHtml(schema.label)}</label>
-            ${schema.description ? `<div class="plugin-config-desc">${escapeHtml(schema.description)}</div>` : ''}
+            <label for="${inputId}">${escapeHtml(labelText)}</label>
+            ${descText ? `<div class="plugin-config-desc">${escapeHtml(descText)}</div>` : ''}
         </div>
     `;
     const dataAttrs = `data-plugin-id="${escapeHtml(manifest.id)}" data-config-key="${escapeHtml(configKey)}"`;
@@ -131,13 +134,18 @@ function renderCard(manifest) {
     const visible = isVisible(manifest.id);
     const hasConfig = Array.isArray(manifest.configSchema) && manifest.configSchema.length > 0;
 
+    const displayName = t(manifest.name);
+    const displayDesc = manifest.description ? t(manifest.description) : '';
+    const visibilityTitle = visible
+        ? t('settings.plugins.visibility.shown')
+        : t('settings.plugins.visibility.hidden');
     return `
         <article class="plugin-card" data-plugin-id="${manifest.id}">
             <div class="plugin-card-main">
                 <div class="plugin-icon">${manifest.icon || ''}</div>
                 <div class="plugin-meta">
-                    <div class="plugin-name">${escapeHtml(manifest.name)}</div>
-                    <div class="plugin-desc">${escapeHtml(manifest.description || '')}</div>
+                    <div class="plugin-name">${escapeHtml(displayName)}</div>
+                    <div class="plugin-desc">${escapeHtml(displayDesc)}</div>
                     <div class="plugin-sub">
                         <span class="plugin-version">v${escapeHtml(manifest.version || '1.0.0')}</span>
                         <span class="plugin-dot">·</span>
@@ -146,20 +154,20 @@ function renderCard(manifest) {
                 </div>
                 <div class="plugin-actions">
                     ${installed ? `
-                        <label class="toggle-switch" title="${visible ? '在新标签页显示' : '已隐藏（仍已安装）'}">
+                        <label class="toggle-switch" title="${escapeHtml(visibilityTitle)}">
                             <input type="checkbox" data-role="visibility" data-plugin-id="${manifest.id}" ${visible ? 'checked' : ''}>
                             <span class="slider round"></span>
                         </label>
                     ` : ''}
                     <button type="button" class="plugin-install-btn" data-role="install" data-plugin-id="${manifest.id}">
-                        ${installed ? '卸载' : '安装'}
+                        ${installed ? escapeHtml(t('settings.plugins.btn.uninstall')) : escapeHtml(t('settings.plugins.btn.install'))}
                     </button>
                 </div>
             </div>
             ${installed && hasConfig ? `
                 <div class="plugin-card-body">
                     <button type="button" class="plugin-expand-btn" data-role="expand" aria-expanded="false">
-                        <span class="plugin-expand-label">配置</span>
+                        <span class="plugin-expand-label">${escapeHtml(t('settings.plugins.config.expand'))}</span>
                         <svg class="plugin-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div class="plugin-config-panel" data-role="config-panel">
@@ -182,7 +190,7 @@ function render(root) {
     const available = PLUGIN_MANIFESTS.filter(m => !isInstalled(m.id));
 
     installedList.innerHTML = installed.length === 0
-        ? '<p class="plugin-empty-hint">尚未安装任何插件</p>'
+        ? `<p class="plugin-empty-hint">${escapeHtml(t('settings.plugins.empty.installed'))}</p>`
         : installed.map(renderCard).join('');
 
     availableList.innerHTML = available.map(renderCard).join('');
@@ -222,7 +230,7 @@ function bindEvents(root) {
             }
         } catch (err) {
             reportError('plugins.install', err, { id });
-            toastError('操作失败：请稍后重试');
+            toastError(t('settings.plugins.toast.installFailed'));
         } finally {
             btn.disabled = false;
         }
@@ -238,7 +246,7 @@ function bindEvents(root) {
             await updateWidget(id, { visible: input.checked });
         } catch (err) {
             reportError('plugins.visibility', err, { id });
-            toastError('设置未能保存');
+            toastError(t('settings.plugins.toast.visibilityFailed'));
             input.checked = !input.checked; // 回滚 UI
         }
     });
@@ -267,7 +275,7 @@ function bindEvents(root) {
             await updateWidget(id, { config: { [key]: value } });
         } catch (err) {
             reportError('plugins.config', err, { id, key, type });
-            toastError('配置未能保存');
+            toastError(t('settings.plugins.toast.configFailed'));
         }
     };
 

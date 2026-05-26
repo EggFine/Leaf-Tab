@@ -4,6 +4,7 @@ import { registerWidget } from './widgetRegistry.js';
 import { initLayout, relayout, notifyWidgetsSettingsChanged } from './layout.js';
 import { subscribeToErrors } from '../../common/errors.js';
 import { toastError, toastWarning } from '../../common/toast.js';
+import { initI18n, changeLang, resolveLang, getLang, t } from '../../common/i18n.js';
 
 // Core widgets
 import searchManifest from './widgets/core/search.js';
@@ -38,7 +39,7 @@ subscribeToErrors((payload) => {
         return;
     }
     if (payload.source.startsWith('store.') || payload.source.startsWith('storage.')) {
-        toastError(`存储异常：${payload.message}`);
+        toastError(t('error.toast.storage', { message: payload.message }));
         return;
     }
 });
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function initializeNewTab() {
     await loadSettings();
+    await initI18n(currentSettings.language);
     applyTheme();
 
     initLayout();
@@ -70,12 +72,26 @@ async function initializeNewTab() {
     let lastTheme = currentSettings.theme;
     let lastEngine = currentSettings.engine;
     let lastInstalled = JSON.stringify(currentSettings.installedPlugins || []);
+    let lastLang = getLang();
 
-    onSettingsChanged(() => {
+    onSettingsChanged(async () => {
         const themeChanged = currentSettings.theme !== lastTheme;
         if (themeChanged) {
             lastTheme = currentSettings.theme;
             applyTheme();
+        }
+
+        // 语言变化:重载 locale → relayout 让所有 widget 用新语言重渲染
+        const desiredLang = resolveLang(currentSettings.language);
+        if (desiredLang !== lastLang) {
+            await changeLang(currentSettings.language);
+            lastLang = desiredLang;
+            relayout();
+            // 保留快照,后面的 structuralChanged 判定不再误触发
+            lastWidgetsSnapshot = JSON.stringify(currentSettings.widgets || {});
+            lastGridSnapshot = JSON.stringify(currentSettings.grid || {});
+            lastInstalled = JSON.stringify(currentSettings.installedPlugins || []);
+            return;
         }
 
         const widgetsJson = JSON.stringify(currentSettings.widgets || {});

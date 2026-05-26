@@ -10,6 +10,7 @@ import {
     topLevelLocationKey,
     DEFAULT_GRID
 } from '../../../newtab/js/store.js';
+import { t } from '../../../common/i18n.js';
 
 // 常规 widget manifest（core + plugins）
 import searchManifest from '../../../newtab/js/widgets/core/search.js';
@@ -77,35 +78,37 @@ function renderChip(id, entry, manifest, opts = {}) {
     const visible = entry?.visible !== false;
     const hideable = manifest?.hideable !== false;
     const typeTag = isContainer
-        ? (entry.containerType === 'col' ? '列容器' : '行容器')
-        : (manifest.type === 'core' ? (hideable ? '核心' : '核心 · 必显') : '插件');
+        ? (entry.containerType === 'col' ? t('settings.plugins.tag.colContainer') : t('settings.plugins.tag.rowContainer'))
+        : (manifest.type === 'core'
+            ? (hideable ? t('settings.plugins.tag.core') : t('settings.plugins.tag.coreRequired'))
+            : t('settings.plugins.tag.plugin'));
     const typeClass = isContainer
         ? 'container'
         : (manifest.type === 'core' ? 'core' : 'plugin');
-    const tooltip = hideable ? '拖动以调整位置' : '该模块不可隐藏，可调整位置';
+    const tooltip = hideable
+        ? t('settings.layout.chip.dragHint')
+        : t('settings.layout.chip.nonHideable');
 
-    const nameDisplay = isContainer
-        ? `${manifest.name}`
-        : escapeHtml(manifest.name);
+    const nameDisplay = escapeHtml(t(manifest.name));
 
     const containerBody = isContainer
         ? `
         <div class="layout-chip-children" data-drop-target="container" data-parent-id="${id}">
-            <span class="layout-chip-children-hint">拖入 widget 即可嵌套</span>
+            <span class="layout-chip-children-hint">${escapeHtml(t('settings.layout.chip.children.hint'))}</span>
         </div>
         `
         : '';
 
     const deleteBtn = isContainer
-        ? `<button type="button" class="layout-chip-delete" data-role="delete-container" data-widget-id="${id}" title="删除此容器" aria-label="删除容器">×</button>`
+        ? `<button type="button" class="layout-chip-delete" data-role="delete-container" data-widget-id="${id}" title="${escapeHtml(t('settings.layout.chip.delete.title'))}" aria-label="${escapeHtml(t('settings.layout.chip.delete.aria'))}">×</button>`
         : '';
 
     // 排序按钮：容器子项、同格子兄弟 widget、同浮层槽兄弟都会显示
     let reorderActions = '';
     if (reorderDirection) {
         const isVertical = reorderDirection === 'vertical';
-        const prevLabel = isVertical ? '上移' : '左移';
-        const nextLabel = isVertical ? '下移' : '右移';
+        const prevLabel = isVertical ? t('settings.layout.reorder.up') : t('settings.layout.reorder.left');
+        const nextLabel = isVertical ? t('settings.layout.reorder.down') : t('settings.layout.reorder.right');
         const prevIcon = isVertical
             ? `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`
             : `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
@@ -374,7 +377,7 @@ function updateTrayEmptyState(root) {
     const hasChildren = tray.querySelector('.layout-chip') !== null;
     tray.classList.toggle('empty', !hasChildren);
     if (!hasChildren) {
-        tray.innerHTML = '<div class="layout-tray-empty">（无隐藏项）</div>';
+        tray.innerHTML = `<div class="layout-tray-empty">${escapeHtml(t('settings.layout.tray.empty'))}</div>`;
     }
 }
 
@@ -605,7 +608,7 @@ function bindToolbar(root) {
         e.stopPropagation();
         const id = btn.dataset.widgetId;
         if (!id) return;
-        if (!confirm('删除该容器？其中的 widget 会被移到"已隐藏"。')) return;
+        if (!confirm(t('settings.layout.confirm.deleteContainer'))) return;
         try {
             await removeContainer(id);
         } catch (err) {
@@ -639,7 +642,7 @@ export async function init(root) {
 
     const resetBtn = root.querySelector('[data-role="reset"]');
     const onReset = async () => {
-        if (!confirm('确定要恢复到默认布局吗？当前容器与 widget 位置将被覆盖。')) return;
+        if (!confirm(t('settings.layout.confirm.reset'))) return;
         try {
             await resetLayout();
         } catch (err) {

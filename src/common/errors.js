@@ -15,7 +15,7 @@ export function subscribeToErrors(listener) {
 export function reportError(source, err, extra = {}) {
     const payload = {
         source: source || 'unknown',
-        message: err?.message || String(err) || '未知错误',
+        message: err?.message || String(err) || 'Unknown error',
         name: err?.name,
         stack: err?.stack,
         extra,

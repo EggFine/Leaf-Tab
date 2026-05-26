@@ -2,6 +2,7 @@ import { loadSettings, updateSettings, onSettingsChanged, currentSettings } from
 import { applyTheme } from '../../newtab/js/theme.js';
 import { subscribeToErrors } from '../../common/errors.js';
 import { toastError, toastWarning } from '../../common/toast.js';
+import { initI18n, changeLang, applyDom, t, getLang, resolveLang } from '../../common/i18n.js';
 
 // 错误通道 → toast
 subscribeToErrors((payload) => {
@@ -10,7 +11,7 @@ subscribeToErrors((payload) => {
         return;
     }
     if (payload.source.startsWith('store.') || payload.source.startsWith('storage.')) {
-        toastError(`存储异常：${payload.message}`);
+        toastError(t('error.toast.storage', { message: payload.message }));
     }
 });
 
@@ -21,32 +22,32 @@ window.addEventListener('unhandledrejection', (e) => {
     try { console.error('[leaf-tab:settings:unhandledrejection]', e.reason); } catch {}
 });
 
-// Tab 配置
+// Tab 配置 —— title 为 i18n key,会在加载时翻译
 const TAB_CONFIG = {
     general: {
-        title: '常规设置',
+        titleKey: 'settings.tab.general',
         file: 'tabs/general.html'
     },
     appearance: {
-        title: '外观',
+        titleKey: 'settings.tab.appearance',
         file: 'tabs/appearance.html'
     },
     search: {
-        title: '搜索引擎',
+        titleKey: 'settings.tab.search',
         file: 'tabs/search.html'
     },
     plugins: {
-        title: '插件商城',
+        titleKey: 'settings.tab.plugins',
         file: 'tabs/plugins.html',
         module: './tabs/plugins.js'
     },
     layout: {
-        title: '布局 DIY',
+        titleKey: 'settings.tab.layout',
         file: 'tabs/layout.html',
         module: './tabs/layout.js'
     },
     about: {
-        title: '关于',
+        titleKey: 'settings.tab.about',
         file: 'tabs/about.html'
     }
 };
@@ -94,11 +95,12 @@ async function loadTabContent(tabName) {
 
         // 更新标题和内容
         if (currentTabTitle) {
-            currentTabTitle.textContent = config.title;
+            currentTabTitle.textContent = t(config.titleKey);
         }
 
         if (tabContent) {
             tabContent.innerHTML = html;
+            applyDom(tabContent);
 
             // 触发淡入动画
             requestAnimationFrame(() => {
@@ -128,7 +130,7 @@ async function loadTabContent(tabName) {
     } catch (error) {
         console.error(`Error loading tab ${tabName}:`, error);
         if (tabContent) {
-            tabContent.innerHTML = '<div class="setting-group"><p class="setting-desc">加载失败，请刷新页面重试。</p></div>';
+            tabContent.innerHTML = `<div class="setting-group"><p class="setting-desc">${t('settings.loadFailed')}</p></div>`;
             tabContent.style.opacity = '1';
             tabContent.style.transform = 'translateY(0)';
         }
@@ -140,7 +142,20 @@ function initializeTabControls(tabName) {
     // 清除旧的控件引用
     selectControls = {};
 
-    if (tabName === 'appearance') {
+    if (tabName === 'general') {
+        selectControls.language = setupCustomSelect('languageSelect', async (value) => {
+            await updateSettings({ language: value });
+            await changeLang(value);
+            // changeLang 触发了 applyDom,会把 .selected-value 重置为该元素 data-i18n 默认 key 的文案;
+            // 立即用当前选中值重渲一遍,保证下拉显示与选项一致。
+            selectControls.language?.setValue(currentSettings.language || 'system');
+            // 当前 tab 标题随 i18n 也要刷新
+            const currentTabTitle = document.getElementById('currentTabTitle');
+            const cfg = TAB_CONFIG[currentTab];
+            if (currentTabTitle && cfg) currentTabTitle.textContent = t(cfg.titleKey);
+        });
+        selectControls.language.setValue(currentSettings.language || 'system');
+    } else if (tabName === 'appearance') {
         selectControls.theme = setupCustomSelect('themeSelect', async (value) => {
             await updateSettings({ theme: value });
             applyTheme();
@@ -152,7 +167,7 @@ function initializeTabControls(tabName) {
         });
         selectControls.engine.setValue(currentSettings.engine);
     }
-    // general tab 已无动态控件；插件/布局 tab 由各自模块负责初始化
+    // 插件/布局 tab 由各自模块负责初始化
 }
 
 function setupCustomSelect(selectId, onChange) {
@@ -391,8 +406,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeSettingsPage() {
-    // 1. 加载配置并应用主题
+    // 1. 加载配置 → 初始化 i18n → 应用主题
     await loadSettings();
+    await initI18n(currentSettings.language);
     applyTheme();
 
     // 监听系统主题变化
@@ -513,14 +529,28 @@ async function initializeSettingsPage() {
     await loadTabContent(currentTab);
 
     // 5. 监听设置变化
-    onSettingsChanged(() => {
+    onSettingsChanged(async () => {
         applyTheme();
+        // 跨页面/跨设备同步导致的语言变化:重新 fetch locale 并 re-apply
+        const desiredLang = resolveLang(currentSettings.language);
+        if (desiredLang !== getLang()) {
+            await changeLang(currentSettings.language);
+            // 当前 tab 标题也要更新
+            const currentTabTitle = document.getElementById('currentTabTitle');
+            const cfg = TAB_CONFIG[currentTab];
+            if (currentTabTitle && cfg) {
+                currentTabTitle.textContent = t(cfg.titleKey);
+            }
+        }
         // 更新当前 tab 的控件值
         if (selectControls.theme) {
             selectControls.theme.setValue(currentSettings.theme);
         }
         if (selectControls.engine) {
             selectControls.engine.setValue(currentSettings.engine);
+        }
+        if (selectControls.language) {
+            selectControls.language.setValue(currentSettings.language || 'system');
         }
     });
 

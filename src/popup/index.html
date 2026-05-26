@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaf Tab - 收藏</title>
+    <title data-i18n="page.title.popup">Leaf Tab - 收藏</title>
+    <link rel="icon" type="image/svg+xml" href="../common/leaf.svg">
     <link rel="stylesheet" href="../common/toast.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,19 +15,19 @@
             <h2>Leaf Tab</h2>
         </div>
         <div class="content">
-            <p id="statusMsg" class="status-msg">正在获取页面信息...</p>
+            <p id="statusMsg" class="status-msg" data-i18n="popup.status.loading">正在获取页面信息...</p>
             <div class="edit-area">
                 <div class="input-group">
-                    <label for="titleInput">标题</label>
-                    <input type="text" id="titleInput" placeholder="网页标题">
+                    <label for="titleInput" data-i18n="popup.label.title">标题</label>
+                    <input type="text" id="titleInput" data-i18n-attr="placeholder:popup.placeholder.title" placeholder="网页标题">
                 </div>
                 <div class="input-group">
-                    <label for="urlInput">链接</label>
-                    <input type="text" id="urlInput" placeholder="https://...">
+                    <label for="urlInput" data-i18n="popup.label.url">链接</label>
+                    <input type="text" id="urlInput" data-i18n-attr="placeholder:popup.placeholder.url" placeholder="https://...">
                 </div>
             </div>
             <div class="action-footer" id="actionFooter">
-                <button id="actionBtn" class="action-btn disabled">加载中...</button>
+                <button id="actionBtn" class="action-btn disabled" data-i18n="popup.btn.loading">加载中...</button>
                 <!-- 动态添加的额外按钮将出现在这里 -->
             </div>
         </div>

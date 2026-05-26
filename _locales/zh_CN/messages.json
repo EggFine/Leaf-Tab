@@ -1,0 +1,14 @@
+{
+    "extName": {
+        "message": "leaf-tab",
+        "description": "扩展名称"
+    },
+    "extDescription": {
+        "message": "简约优雅的导航页",
+        "description": "扩展描述"
+    },
+    "extActionTitle": {
+        "message": "leaf-tab",
+        "description": "工具栏图标标题"
+    }
+}

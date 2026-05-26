@@ -237,6 +237,34 @@ body.dark-theme .settings-sidebar {
     opacity: 0.8;
 }
 
+.about-github {
+    margin-top: 28px;
+}
+
+.about-github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--btn-bg-hover);
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    transition: background 0.2s var(--transition-timing),
+                transform 0.2s var(--transition-timing);
+}
+
+.about-github-link:hover {
+    background: var(--select-bg);
+    transform: translateY(-1px);
+}
+
+.about-github-link:focus-visible {
+    outline: 2px solid var(--logo-color);
+    outline-offset: 2px;
+}
+
 /* 自定义下拉框 */
 .custom-select-wrapper { position: relative; width: 160px; user-select: none; }
 .custom-select {

@@ -2,15 +2,20 @@ import { loadBookmarks, saveBookmarks, findMatchedBookmark } from '../common/boo
 import { readStorage } from '../common/storage.js';
 import { reportError, subscribeToErrors } from '../common/errors.js';
 import { toastError } from '../common/toast.js';
+import { initI18n, t } from '../common/i18n.js';
 
 // 把 errors 通道接到 toast，popup 内部的错误用户能感知到
 subscribeToErrors((payload) => {
     if (payload.source?.startsWith('storage')) {
-        toastError(`存储异常：${payload.message}`);
+        toastError(t('error.toast.storage', { message: payload.message }));
     }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // 先取语言偏好,再初始化 i18n,再渲染 UI
+    const { value: settingsForLang } = await readStorage('leaf-settings', { area: 'sync' });
+    await initI18n(settingsForLang?.language);
+
     const statusMsg = document.getElementById('statusMsg');
     const titleInput = document.getElementById('titleInput');
     const urlInput = document.getElementById('urlInput');
@@ -24,8 +29,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tabs || tabs.length === 0) {
-            statusMsg.textContent = '无法获取页面信息';
-            actionBtn.textContent = '错误';
+            statusMsg.textContent = t('popup.status.tabUnavailable');
+            actionBtn.textContent = t('popup.btn.error');
             actionBtn.classList.add('disabled');
             return;
         }
@@ -36,8 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const urlText = currentTab.url || '';
         if (!urlText || (!urlText.startsWith('http://') && !urlText.startsWith('https://'))) {
-            statusMsg.textContent = '无法收藏此页面（不支持的URL协议）';
-            actionBtn.textContent = '不支持的页面';
+            statusMsg.textContent = t('popup.status.unsupportedUrl');
+            actionBtn.textContent = t('popup.btn.unsupported');
             actionBtn.classList.add('disabled');
             return;
         }
@@ -56,8 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         })();
 
         if (!bookmarksEnabled) {
-            statusMsg.textContent = '收藏插件未启用，请在设置中开启。';
-            actionBtn.textContent = '功能未开启';
+            statusMsg.textContent = t('popup.status.pluginDisabled');
+            actionBtn.textContent = t('popup.btn.disabled');
             actionBtn.classList.add('disabled');
             return;
         }
@@ -66,8 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (err) {
         reportError('popup.init', err);
-        statusMsg.textContent = '发生初始化错误';
-        actionBtn.textContent = '错误';
+        statusMsg.textContent = t('popup.status.initError');
+        actionBtn.textContent = t('popup.btn.error');
     }
 
     async function refreshBookmarksState() {
@@ -77,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateUIState();
         } catch (err) {
             reportError('popup.loadBookmarks', err);
-            statusMsg.textContent = '加载收藏失败';
+            statusMsg.textContent = t('popup.status.loadFailed');
         }
     }
 
@@ -91,11 +96,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isExactMatch = matchedBookmark.url === currentTab.url;
 
             if (isExactMatch) {
-                statusMsg.textContent = '此页面已在收藏中';
-                actionBtn.textContent = '更新信息';
+                statusMsg.textContent = t('popup.status.alreadyBookmarked');
+                actionBtn.textContent = t('popup.btn.update');
             } else {
-                statusMsg.textContent = `发现来自同一站点的收藏: "${matchedBookmark.title}"`;
-                actionBtn.textContent = '替换旧项';
+                statusMsg.textContent = t('popup.status.siteMatch', { title: matchedBookmark.title });
+                actionBtn.textContent = t('popup.btn.replace');
             }
 
             titleInput.value = currentTab.title || matchedBookmark.title;
@@ -103,14 +108,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const secondaryBtn = document.createElement('button');
             secondaryBtn.id = 'secondaryActionBtn';
             secondaryBtn.className = 'action-btn secondary';
-            secondaryBtn.textContent = '存为新项';
+            secondaryBtn.textContent = t('popup.btn.saveAsNew');
             secondaryBtn.onclick = () => handleAction(false);
             actionFooter.appendChild(secondaryBtn);
 
             actionBtn.onclick = () => handleAction(true);
         } else {
-            statusMsg.textContent = '页面未收藏';
-            actionBtn.textContent = '添加到收藏';
+            statusMsg.textContent = t('popup.status.notBookmarked');
+            actionBtn.textContent = t('popup.btn.add');
             actionBtn.onclick = () => handleAction(false);
         }
     }
@@ -120,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const newUrl = urlInput.value.trim();
 
         if (!newTitle || !newUrl) {
-            statusMsg.textContent = '标题和链接不能为空';
+            statusMsg.textContent = t('popup.status.titleUrlRequired');
             return;
         }
 
@@ -137,21 +142,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                         icon: newUrl === currentTab.url ? (currentTab.favIconUrl || matchedBookmark.icon) : ''
                     };
                 }
-                statusMsg.textContent = '收藏已更新';
+                statusMsg.textContent = t('popup.status.updated');
             } else {
                 bookmarks.push({
                     title: newTitle,
                     url: newUrl,
                     icon: newUrl === currentTab.url ? (currentTab.favIconUrl || '') : ''
                 });
-                statusMsg.textContent = '已添加到收藏';
+                statusMsg.textContent = t('popup.status.added');
             }
 
             await saveBookmarks(bookmarks);
             await refreshBookmarksState();
         } catch (err) {
             reportError('popup.handleAction', err);
-            statusMsg.textContent = '操作失败';
+            statusMsg.textContent = t('popup.status.actionFailed');
         } finally {
             btns.forEach(b => b.classList.remove('disabled'));
         }

@@ -1,0 +1,14 @@
+{
+    "extName": {
+        "message": "Leaf Tab",
+        "description": "拡張機能名"
+    },
+    "extDescription": {
+        "message": "シンプルで上品なブラウザのスタートページ",
+        "description": "拡張機能の説明"
+    },
+    "extActionTitle": {
+        "message": "Leaf Tab",
+        "description": "ツールバーアイコンのタイトル"
+    }
+}

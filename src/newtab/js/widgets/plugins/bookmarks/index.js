@@ -3,6 +3,7 @@
 
 import { loadBookmarks, saveBookmarks, onBookmarksChanged } from '../../../../../common/bookmarks.js';
 import { reportError } from '../../../../../common/errors.js';
+import { t } from '../../../../../common/i18n.js';
 
 const FALLBACK_COLORS = [
     '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
@@ -42,8 +43,8 @@ function renderBookmarks(bookmarks) {
         grid.innerHTML = `
             <div class="empty-bookmarks">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.5;"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>
-                <div style="font-weight: 500; margin-bottom: 4px;">暂无收藏</div>
-                <div style="font-size: 12px; opacity: 0.7;">点击浏览器右上角 Leaf Tab 图标收藏当前页面</div>
+                <div style="font-weight: 500; margin-bottom: 4px;">${escapeAttr(t('widget.bookmarks.empty.title'))}</div>
+                <div style="font-size: 12px; opacity: 0.7;">${escapeAttr(t('widget.bookmarks.empty.hint'))}</div>
             </div>
         `;
         return;
@@ -83,7 +84,7 @@ function renderBookmarks(bookmarks) {
         item.innerHTML = `
             <div class="bookmark-icon-wrapper">
                 ${iconHtml}
-                <button class="delete-bookmark-btn" aria-label="删除收藏" data-url="${escapeAttr(bookmark.url)}">
+                <button class="delete-bookmark-btn" aria-label="${escapeAttr(t('widget.bookmarks.delete.aria'))}" data-url="${escapeAttr(bookmark.url)}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
@@ -142,16 +143,16 @@ async function removeBookmark(url) {
 const manifest = {
     id: 'bookmarks',
     type: 'plugin',
-    name: '收藏',
-    description: '快速访问常用网站，支持自动获取网站图标',
+    name: 'widget.bookmarks.name',
+    description: 'widget.bookmarks.description',
     icon: BOOKMARK_ICON,
     version: '1.0.0',
     author: 'Leaf Tab',
     removable: true,
     defaultPosition: { cell: 'BC', colSpan: 3, rowSpan: 1 },
     configSchema: [
-        { key: 'showTitles', label: '显示标题', type: 'toggle', default: true,
-          description: '在每个收藏项下方显示网站标题' }
+        { key: 'showTitles', label: 'widget.bookmarks.config.showTitles.label', type: 'toggle', default: true,
+          description: 'widget.bookmarks.config.showTitles.description' }
     ],
 
     mount(container, ctx) {
@@ -188,7 +189,10 @@ const manifest = {
         loadAndRender();
     },
 
-    onSettingsChange() {}
+    // 语言切换会从 store 派生 settings 变更 → 重新渲染空态文案
+    onSettingsChange() {
+        loadAndRender();
+    }
 };
 
 export default manifest;
