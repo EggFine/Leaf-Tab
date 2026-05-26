@@ -2,10 +2,13 @@
 
 > 简约优雅的浏览器新标签页 —— 可自定义九宫格布局 + 插件化架构
 
+**语言**:**简体中文** · [English](README.en.md) · [日本語](README.ja.md)
+
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 [![Chrome](https://img.shields.io/badge/Chrome-supported-brightgreen?logo=googlechrome)](https://www.google.com/chrome/)
 [![Edge](https://img.shields.io/badge/Edge-supported-brightgreen?logo=microsoftedge)](https://www.microsoft.com/edge)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)](./manifest.json)
 
 Leaf-Tab 用一个极简的起始页替换浏览器新标签页:中央搜索框、可拖拽的九宫格布局、可启停的插件模块,外观干净到不打扰你。
 
@@ -19,6 +22,7 @@ Leaf-Tab 用一个极简的起始页替换浏览器新标签页:中央搜索框�
 - **行/列容器** —— 在同一个格子里并排或堆叠多个 widget
 - **插件商城** —— 内置收藏插件,支持启用 / 禁用 / 配置
 - **收藏集** —— 点击工具栏图标一键收藏当前页,自动获取 favicon,数据走 `chrome.storage.local`
+- **多语言支持** —— 简体中文 / English / 日本語,可在设置中切换,跟随系统也行
 - **响应式设计** —— 设置页带侧边栏抽屉,移动端友好
 - **稳健的数据层** —— chrome.storage 配额自动降级、错误通道统一上报、parentId 循环引用检测
 
@@ -50,16 +54,29 @@ Leaf-Tab 用一个极简的起始页替换浏览器新标签页:中央搜索框�
 
 ```
 leaf-tab/
-├── manifest.json              # Manifest V3 入口
+├── manifest.json              # Manifest V3 入口(走 __MSG_*__ 本地化)
+├── _locales/                  # chrome.i18n 用的扩展名/描述翻译
+│   ├── zh_CN/messages.json
+│   ├── en/messages.json
+│   └── ja/messages.json
+├── icons/                     # 工具栏 / 扩展管理页图标(PNG)
+│   ├── icon-source.svg        # 源文件,用 sharp/Pillow 重新渲染 PNG
+│   └── icon{16,32,48,128}.png
 ├── src/
 │   ├── background/
 │   │   └── background.js      # Service Worker:安装迁移 + 消息路由
 │   ├── common/                # 跨页面共享的基础设施
+│   │   ├── i18n.js            # 运行时 i18n 引擎(loadLocale/t/applyDom/changeLang)
+│   │   ├── leaf.svg           # 叶子 favicon
 │   │   ├── storage.js         # chrome.storage 封装 + 配额降级
 │   │   ├── bookmarks.js       # 书签数据层(storage.local)
 │   │   ├── errors.js          # 统一错误上报 + 订阅机制
 │   │   ├── toast.js           # 轻量通知组件
 │   │   └── toast.css
+│   ├── i18n/                  # 运行时翻译文件(支持页面切换语言)
+│   │   ├── zh-CN.json
+│   │   ├── en.json
+│   │   └── ja.json
 │   ├── newtab/                # 新标签页(主界面)
 │   │   ├── index.html
 │   │   ├── css/
@@ -92,21 +109,24 @@ Leaf-Tab 把所有界面元素抽象为 **widget**,统一通过注册表挂载:
 const manifest = {
     id: 'my-widget',
     type: 'plugin',              // 'core' | 'plugin' | 'container'
-    name: '我的插件',
-    description: '...',
+    name: 'widget.myWidget.name',           // i18n key
+    description: 'widget.myWidget.description', // i18n key
     icon: '<svg>...</svg>',
     version: '1.0.0',
     author: 'You',
     configSchema: [
-        { key: 'fontSize', label: '字号', type: 'number', default: 14, min: 10, max: 32 },
-        { key: 'accent',   label: '高亮色', type: 'color',  default: '#4e73df' }
+        { key: 'fontSize', label: 'widget.myWidget.config.fontSize.label',
+          type: 'number', default: 14, min: 10, max: 32 },
+        { key: 'accent',   label: 'widget.myWidget.config.accent.label',
+          type: 'color',  default: '#4e73df' }
     ],
     mount(container, ctx) {
         // 在 container 里挂载你的 DOM;ctx.config 读取当前配置
+        // 需要本地化字符串时调用 t('your.key', { var: 1 })
     },
     unmount() { /* 清理 */ },
     onConfigChange() { /* 配置变更回调 */ },
-    onSettingsChange() { /* 全局设置变更回调 */ }
+    onSettingsChange() { /* 全局设置变更回调,语言切换也会触发 */ }
 };
 
 export default manifest;
@@ -126,6 +146,39 @@ registerWidget(myManifest);
 
 ---
 
+## 🌐 国际化(i18n)
+
+Leaf-Tab 同时使用两套 i18n:
+
+- **`chrome.i18n` + `_locales/`** —— 仅用于 manifest.json 的扩展名与描述(install-time 翻译,无法运行时切换)
+- **自定义 JS 引擎** —— `src/common/i18n.js` 提供运行时 `t(key, params)` 与 `changeLang(lang)`,所有页面 UI 都走这套
+
+### 添加一种新语言
+
+1. 把 `src/i18n/zh-CN.json` 复制成 `src/i18n/<new-lang>.json`,翻译所有 key
+2. 在 `src/common/i18n.js` 把 `<new-lang>` 加进 `SUPPORTED_LANGS`
+3. 在 `src/settings/tabs/general.html` 的语言下拉里加一个 `<div class="custom-option" data-value="<new-lang>" data-i18n="settings.language.<new-lang>">...</div>`
+4. (可选)在 `_locales/<new-lang>/messages.json` 翻译 manifest 字段
+5. 在三个 locale JSON 里都加 `settings.language.<new-lang>` 这一项
+
+### 在代码里取词
+
+```js
+import { t } from '../common/i18n.js';
+const msg = t('popup.status.siteMatch', { title: '已收藏的页面' });
+// → "发现来自同一站点的收藏: \"已收藏的页面\""
+```
+
+HTML 里声明:
+
+```html
+<p data-i18n="settings.about.description">备用文案</p>
+<button data-i18n-attr="aria-label:btn.aria">...</button>
+<p data-i18n-html="settings.layout.intro">含 <strong>富文本</strong></p>
+```
+
+---
+
 ## 🛠 开发
 
 项目目前是**零构建**的原生 ES Modules 设计,不需要 `npm install`、webpack 或 babel。直接改代码,在扩展管理页点"刷新"即可看到效果。
@@ -140,7 +193,22 @@ registerWidget(myManifest);
 
 - 所有数据读写统一通过 `src/common/storage.js`,不要直接用 `chrome.storage.sync.set`
 - 错误通过 `reportError(source, err)` 上报,toast 会自动订阅显示
+- 用户可见字符串走 `t(key)` / `data-i18n`,不要直接写字面量
 - 新 widget 放在 `src/newtab/js/widgets/plugins/` 下,记得在 `main.js` 里注册
+
+### 重新生成图标
+
+```bash
+# 改完 icons/icon-source.svg 后
+npm install --no-save sharp
+node -e "
+const sharp = require('sharp'), fs = require('fs');
+const svg = fs.readFileSync('icons/icon-source.svg');
+[16,32,48,128].forEach(s => sharp(svg, {density:384})
+    .resize(s, s, {fit:'contain', background:{r:0,g:0,b:0,alpha:0}})
+    .png().toFile('icons/icon'+s+'.png'));
+"
+```
 
 ---
 
@@ -150,7 +218,7 @@ registerWidget(myManifest);
 - [x] DIY 九宫格布局(含行/列容器)
 - [x] 存储配额降级 + 书签本地化
 - [x] 移动端响应式
-- [ ] 国际化(i18n)
+- [x] 国际化(简体中文 / English / 日本語)
 - [ ] 插件热加载 / 第三方插件
 - [ ] 扩展商店图标与发布
 - [ ] 更多内置插件(天气、待办、时钟等)
